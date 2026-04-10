@@ -28,17 +28,23 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { article_id } = await request.json()
+  const { article_id, reflection } = await request.json()
   if (!article_id) return NextResponse.json({ error: 'Missing article_id' }, { status: 400 })
 
   const today = new Date().toISOString().split('T')[0]
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updatePayload: any = {
+    read: true,
+    read_at: new Date().toISOString(),
+  }
+  if (reflection && typeof reflection === 'string') {
+    updatePayload.reflection = reflection.slice(0, 1000)
+  }
+
   const { error } = await supabaseAdmin
     .from('daily_articles')
-    .update({
-      read: true,
-      read_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq('user_id', user.id)
     .eq('article_id', article_id)
     .eq('assigned_date', today)

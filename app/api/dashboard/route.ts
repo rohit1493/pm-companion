@@ -82,6 +82,23 @@ export async function GET() {
     reading_time_minutes: d.articles?.reading_time_minutes,
   }))
 
+  // Skill progress: count reads per topic for user's selected topics
+  const userTopics: string[] = profile?.topics || []
+  const topicCounts: Record<string, number> = {}
+  for (const topic of userTopics) topicCounts[topic] = 0
+  for (const day of readDays) {
+    for (const topic of (day.articles?.topics || [])) {
+      if (topicCounts[topic] !== undefined) topicCounts[topic]++
+    }
+  }
+  const SKILL_TARGET = 10
+  const skillProgress = userTopics.map(topic => ({
+    topic,
+    count: topicCounts[topic] || 0,
+    target: SKILL_TARGET,
+    percent: Math.min(100, Math.round(((topicCounts[topic] || 0) / SKILL_TARGET) * 100)),
+  }))
+
   return NextResponse.json({
     streak,
     totalRead,
@@ -90,5 +107,6 @@ export async function GET() {
     last7,
     profile,
     recentReads,
+    skillProgress,
   })
 }

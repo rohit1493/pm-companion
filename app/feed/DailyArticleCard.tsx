@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { getInterviewAngle } from '@/lib/interview-angles'
 
 type Article = {
   id: string
@@ -30,6 +31,11 @@ export default function DailyArticleCard() {
   const [clicked, setClicked] = useState(false)
   const [read, setRead] = useState(false)
   const [marking, setMarking] = useState(false)
+  const [showReflection, setShowReflection] = useState(false)
+  const [reflection, setReflection] = useState('')
+  const [savedReflection, setSavedReflection] = useState<string | null>(null)
+  const [savingReflection, setSavingReflection] = useState(false)
+  const [primaryGoal, setPrimaryGoal] = useState<string | null>(null)
 
   useEffect(() => {
     const todayDate = new Date().toISOString().split('T')[0]
@@ -38,10 +44,15 @@ export default function DailyArticleCard() {
       .then(data => {
         if (data.article) {
           setArticle(data.article)
-          // Check if already marked read today
-          const readKey = `pm_read_${todayDate}_${data.article.id}`
-          if (localStorage.getItem(readKey) === 'true') {
+          if (data.primaryGoal) setPrimaryGoal(data.primaryGoal)
+          // Server is authoritative for read state
+          if (data.read) {
             setRead(true)
+            if (data.reflection) setSavedReflection(data.reflection)
+          } else {
+            // Fallback: check localStorage
+            const readKey = `pm_read_${todayDate}_${data.article.id}`
+            if (localStorage.getItem(readKey) === 'true') setRead(true)
           }
         }
         setLoading(false)
@@ -65,11 +76,30 @@ export default function DailyArticleCard() {
         body: JSON.stringify({ article_id: article.id }),
       })
       setRead(true)
+      setShowReflection(true)
       localStorage.setItem(`pm_read_${todayDate}_${article.id}`, 'true')
     } catch (err) {
       console.error(err)
     } finally {
       setMarking(false)
+    }
+  }
+
+  async function handleSaveReflection() {
+    if (!article || savingReflection || !reflection.trim()) return
+    setSavingReflection(true)
+    try {
+      await fetch('/api/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ article_id: article.id, reflection: reflection.trim() }),
+      })
+      setSavedReflection(reflection.trim())
+      setShowReflection(false)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSavingReflection(false)
     }
   }
 
@@ -218,6 +248,51 @@ export default function DailyArticleCard() {
         </div>
       </a>
 
+      {/* Interview angle — shown for users with interview prep goal */}
+      {primaryGoal === 'interviews' && article && (() => {
+        const angle = getInterviewAngle(article.topics || [])
+        if (!angle) return null
+        return (
+          <div style={{
+            margin: '0 20px 16px',
+            background: '#FFFBEB',
+            border: '1.5px solid #FDE68A',
+            borderRadius: '12px',
+            padding: '14px 16px',
+          }}>
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '11px',
+              fontWeight: 600,
+              color: '#92400E',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              marginBottom: '6px',
+            }}>
+              Interview angle
+            </p>
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '13px',
+              fontWeight: 500,
+              color: '#78350F',
+              marginBottom: '6px',
+              lineHeight: 1.4,
+            }}>
+              "{angle.question}"
+            </p>
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '12px',
+              color: '#92400E',
+              lineHeight: 1.5,
+            }}>
+              {angle.tip}
+            </p>
+          </div>
+        )
+      })()}
+
       {/* Mark as read button — appears after user clicks the article */}
       {!read && clicked && (
         <div style={{
@@ -261,20 +336,126 @@ export default function DailyArticleCard() {
         </div>
       )}
 
-      {/* Already read confirmation */}
-      {read && (
+      {/* Reflection prompt — appears right after marking as read */}
+      {read && showReflection && !savedReflection && (
         <div style={{
           padding: '0 20px 20px',
-          textAlign: 'center',
+          animation: 'fadeUp 300ms ease forwards',
         }}>
           <p style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: '13px',
-            color: '#10B981',
-            fontWeight: 500,
+            fontWeight: 600,
+            color: '#1E293B',
+            marginBottom: '8px',
           }}>
-            Great work. Come back tomorrow for your next read.
+            What's one thing you'll apply from this?
           </p>
+          <textarea
+            value={reflection}
+            onChange={e => setReflection(e.target.value)}
+            placeholder="Write a quick thought... (optional)"
+            maxLength={500}
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '1.5px solid #E2E8F0',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '13px',
+              color: '#1E293B',
+              resize: 'none',
+              outline: 'none',
+              boxSizing: 'border-box',
+              lineHeight: 1.5,
+              background: '#FAFAFA',
+            }}
+            onFocus={e => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.background = 'white' }}
+            onBlur={e => { e.currentTarget.style.borderColor = '#E2E8F0'; e.currentTarget.style.background = '#FAFAFA' }}
+          />
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+            <button
+              onClick={handleSaveReflection}
+              disabled={savingReflection || !reflection.trim()}
+              style={{
+                flex: 1,
+                padding: '10px',
+                background: reflection.trim() ? '#10B981' : '#F1F5F9',
+                border: 'none',
+                borderRadius: '8px',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '13px',
+                fontWeight: 500,
+                color: reflection.trim() ? 'white' : '#94A3B8',
+                cursor: reflection.trim() ? 'pointer' : 'default',
+                transition: 'all 200ms ease',
+                outline: 'none',
+              }}
+            >
+              {savingReflection ? 'Saving...' : 'Save reflection'}
+            </button>
+            <button
+              onClick={() => setShowReflection(false)}
+              style={{
+                padding: '10px 16px',
+                background: 'none',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '8px',
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '13px',
+                color: '#94A3B8',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              Skip
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Already read confirmation — shown when not in reflection flow */}
+      {read && !showReflection && (
+        <div style={{ padding: '0 20px 20px' }}>
+          {savedReflection ? (
+            <div style={{
+              background: '#F0FDF4',
+              borderRadius: '10px',
+              padding: '12px',
+              border: '1px solid #BBF7D0',
+            }}>
+              <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#059669',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                marginBottom: '4px',
+              }}>
+                Your reflection
+              </p>
+              <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '13px',
+                color: '#065F46',
+                lineHeight: 1.5,
+              }}>
+                {savedReflection}
+              </p>
+            </div>
+          ) : (
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '13px',
+              color: '#10B981',
+              fontWeight: 500,
+              textAlign: 'center',
+            }}>
+              Great work. Come back tomorrow for your next read.
+            </p>
+          )}
         </div>
       )}
     </div>

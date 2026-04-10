@@ -36,6 +36,12 @@ type DashboardData = {
     topics: string[]
     reading_time_minutes: number
   }[]
+  skillProgress: {
+    topic: string
+    count: number
+    target: number
+    percent: number
+  }[]
 }
 
 function StatCard({ value, label, accent }: { value: string | number; label: string; accent?: boolean }) {
@@ -74,6 +80,8 @@ export default function DashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [userEmail, setUserEmail] = useState('')
+  const [userId, setUserId] = useState('')
+  const [copyToast, setCopyToast] = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard')
@@ -84,8 +92,17 @@ export default function DashboardClient() {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
+      if (user?.id) setUserId(user.id)
     })
   }, [])
+
+  function handleShare() {
+    const shareUrl = `${window.location.origin}/share/${userId}`
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopyToast(true)
+      setTimeout(() => setCopyToast(false), 2500)
+    })
+  }
 
   return (
     <div style={{
@@ -193,6 +210,55 @@ export default function DashboardClient() {
               />
             </div>
 
+            {/* Share streak button */}
+            {data.streak > 0 && (
+              <div style={{ marginBottom: '16px', position: 'relative' }}>
+                <button
+                  onClick={handleShare}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: 'white',
+                    border: '1.5px solid #E2E8F0',
+                    borderRadius: '12px',
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#4F46E5',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    outline: 'none',
+                    transition: 'border-color 150ms ease, background 150ms ease',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFF'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#4F46E5' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'white'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#E2E8F0' }}
+                >
+                  <span>🔗</span> Share your {data.streak}-day streak on LinkedIn
+                </button>
+                {copyToast && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-40px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#1E293B',
+                    color: 'white',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    pointerEvents: 'none',
+                  }}>
+                    Link copied to clipboard!
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Last 7 days */}
             <div style={{
               background: 'white',
@@ -290,6 +356,61 @@ export default function DashboardClient() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Skill progress */}
+            {data.skillProgress?.length > 0 && (
+              <div style={{
+                background: 'white',
+                border: '1px solid #E2E8F0',
+                borderRadius: '14px',
+                padding: '20px',
+                marginBottom: '16px',
+              }}>
+                <p style={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  color: '#94A3B8',
+                  marginBottom: '16px',
+                }}>
+                  Skill progress
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {data.skillProgress.map(skill => (
+                    <div key={skill.topic}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#1E293B' }}>{skill.topic}</span>
+                        <span style={{ fontSize: '12px', color: '#94A3B8' }}>{skill.count}/{skill.target} articles</span>
+                      </div>
+                      <div style={{
+                        height: '6px',
+                        background: '#F1F5F9',
+                        borderRadius: '99px',
+                        overflow: 'hidden',
+                      }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${skill.percent}%`,
+                          background: skill.percent >= 100 ? '#10B981' : '#4F46E5',
+                          borderRadius: '99px',
+                          transition: 'width 600ms ease',
+                          minWidth: skill.count > 0 ? '6px' : '0',
+                        }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p style={{
+                  fontSize: '11px',
+                  color: '#CBD5E1',
+                  marginTop: '14px',
+                  textAlign: 'center',
+                }}>
+                  10 articles = 1 skill point
+                </p>
               </div>
             )}
 

@@ -39,16 +39,22 @@ export async function GET(request: NextRequest) {
     .eq('assigned_date', today)
     .single()
 
-  if (existing?.articles) {
-    return NextResponse.json({ article: existing.articles, isNew: false })
-  }
-
-  // Get user's topics from their profile
+  // Get user profile (needed for both existing and new article paths)
   const { data: profile } = await supabaseAdmin
     .from('user_profiles')
-    .select('topics')
+    .select('topics, primary_goal')
     .eq('user_id', user.id)
     .single()
+
+  if (existing?.articles) {
+    return NextResponse.json({
+      article: existing.articles,
+      isNew: false,
+      read: existing.read ?? false,
+      reflection: existing.reflection ?? null,
+      primaryGoal: profile?.primary_goal ?? null,
+    })
+  }
 
   // Pick a random article from user's topics that hasn't been assigned before
   const topics = profile?.topics || []
@@ -106,5 +112,5 @@ export async function GET(request: NextRequest) {
     if (retry?.articles) return NextResponse.json({ article: retry.articles, isNew: false })
   }
 
-  return NextResponse.json({ article: picked, isNew: true })
+  return NextResponse.json({ article: picked, isNew: true, read: false, reflection: null, primaryGoal: profile?.primary_goal ?? null })
 }
