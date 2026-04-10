@@ -85,6 +85,9 @@ export default function AuthPage() {
             <p style={{ fontSize: '13px', color: '#94A3B8', marginTop: '16px' }}>
               Click the link to sign in. No password needed.
             </p>
+            <p style={{ fontSize: '12px', color: '#CBD5E1', marginTop: '10px', lineHeight: 1.5 }}>
+              Can't find it? Check your <strong style={{ color: '#94A3B8' }}>spam or junk folder</strong>.
+            </p>
             <button
               onClick={() => { setState('idle'); setEmail('') }}
               style={{
