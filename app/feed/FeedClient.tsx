@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import DailyArticleCard from './DailyArticleCard'
 import StreakBadge from './StreakBadge'
@@ -236,6 +237,15 @@ export default function FeedClient() {
               )}
               {userEmail && (
                 <>
+                  <Link href="/dashboard" style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: '13px',
+                    color: '#64748B',
+                    textDecoration: 'none',
+                    marginRight: '4px',
+                  }}>
+                    Dashboard
+                  </Link>
                   <span style={{ fontSize: '13px', color: '#94A3B8' }}>
                     {userEmail.split('@')[0]}
                   </span>
