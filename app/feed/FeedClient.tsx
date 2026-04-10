@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import DailyArticleCard from './DailyArticleCard'
+import StreakBadge from './StreakBadge'
 
 type Article = {
   id: string
@@ -301,6 +302,9 @@ export default function FeedClient() {
 
       {/* Daily article */}
       <DailyArticleCard />
+
+      {/* Streak */}
+      <StreakBadge />
 
       {/* Article list */}
       <main
