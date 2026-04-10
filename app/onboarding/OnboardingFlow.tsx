@@ -366,7 +366,7 @@ export default function OnboardingFlow() {
         maxWidth: '480px',
         width: '100%',
         margin: '0 auto',
-        padding: '40px 24px 32px',
+        padding: '40px 24px 120px',
       }}>
 
         {/* -- STEP 1 -- */}
@@ -532,68 +532,75 @@ export default function OnboardingFlow() {
           </StepWrapper>
         )}
 
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
+      </div>
 
-        {/* Error */}
+      {/* Sticky CTA — always visible at bottom */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'linear-gradient(to top, var(--bg) 70%, transparent)',
+        padding: '20px 24px 32px',
+        zIndex: 20,
+      }}>
         {error && (
           <p style={{
             fontFamily: "'DM Sans', sans-serif",
             fontSize: '13px',
             color: '#EF4444',
-            marginBottom: '12px',
+            marginBottom: '10px',
             textAlign: 'center',
           }} role="alert">
             {error}
           </p>
         )}
-
-        {/* CTA Button */}
-        <button
-          type="button"
-          disabled={!canProceed || submitting}
-          onClick={() => {
-            if (step < 3) setStep(step + 1)
-            else handleSubmit()
-          }}
-          style={{
-            width: '100%',
-            padding: '16px',
-            background: canProceed ? 'var(--indigo)' : '#E2E8F0',
-            color: canProceed ? 'white' : 'var(--text-muted)',
-            border: 'none',
-            borderRadius: '12px',
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '15px',
-            fontWeight: 500,
-            cursor: canProceed ? 'pointer' : 'not-allowed',
-            transition: 'all 200ms ease',
-            marginTop: '24px',
-            outline: 'none',
-            letterSpacing: '-0.01em',
-          }}
-          onMouseEnter={(e) => {
-            if (canProceed) {
-              (e.currentTarget as HTMLButtonElement).style.background = 'var(--indigo-dark)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (canProceed) {
-              (e.currentTarget as HTMLButtonElement).style.background = 'var(--indigo)'
-            }
-          }}
-          onFocus={(e) => {
-            if (canProceed) {
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 0 3px rgba(79,70,229,0.3)'
-            }
-          }}
-          onBlur={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'
-          }}
-          aria-disabled={!canProceed}
-        >
-          {submitting ? 'Saving...' : step < 3 ? 'Next →' : 'Build my plan →'}
-        </button>
+        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+          <button
+            type="button"
+            disabled={!canProceed || submitting}
+            onClick={() => {
+              if (step < 3) setStep(step + 1)
+              else handleSubmit()
+            }}
+            style={{
+              width: '100%',
+              padding: '16px',
+              background: canProceed ? 'var(--indigo)' : '#E2E8F0',
+              color: canProceed ? 'white' : 'var(--text-muted)',
+              border: 'none',
+              borderRadius: '12px',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '15px',
+              fontWeight: 500,
+              cursor: canProceed ? 'pointer' : 'not-allowed',
+              transition: 'all 200ms ease',
+              outline: 'none',
+              letterSpacing: '-0.01em',
+            }}
+            onMouseEnter={(e) => {
+              if (canProceed) {
+                (e.currentTarget as HTMLButtonElement).style.background = 'var(--indigo-dark)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (canProceed) {
+                (e.currentTarget as HTMLButtonElement).style.background = 'var(--indigo)'
+              }
+            }}
+            onFocus={(e) => {
+              if (canProceed) {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 0 3px rgba(79,70,229,0.3)'
+              }
+            }}
+            onBlur={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'
+            }}
+            aria-disabled={!canProceed}
+          >
+            {submitting ? 'Saving...' : step < 3 ? 'Next →' : 'Build my plan →'}
+          </button>
+        </div>
       </div>
     </div>
   )
