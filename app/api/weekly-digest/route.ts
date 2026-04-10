@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
     // Collect unique topics covered
     const topicsSet = new Set<string>()
     for (const r of reads) {
-      for (const t of (r.articles as { topics: string[] })?.topics || []) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const art = r.articles as any
+      for (const t of art?.topics || []) {
         topicsSet.add(t)
       }
     }
@@ -53,7 +55,8 @@ export async function GET(request: NextRequest) {
 
     // Build article list HTML
     const articleLines = reads.map(r => {
-      const a = r.articles as { title: string; url: string; source: string } | null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const a = r.articles as any
       if (!a) return ''
       return `<li style="margin-bottom:10px"><a href="${a.url}" style="color:#4F46E5;text-decoration:none;font-weight:500">${a.title}</a><br><span style="color:#94A3B8;font-size:12px">${a.source}</span></li>`
     }).filter(Boolean).join('')
