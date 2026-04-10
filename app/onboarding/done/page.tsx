@@ -81,58 +81,71 @@ export default function DonePage() {
           padding: '24px',
           marginBottom: '28px',
         }}>
-          {goal && (
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '11px',
-                fontWeight: 600,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--text-muted)',
-                marginBottom: '6px',
-              }}>
-                Goal
-              </p>
-              <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '15px',
-                color: 'var(--text-primary)',
-                fontWeight: 500,
-              }}>
-                {GOAL_LABELS[goal] || goal}
-              </p>
-            </div>
-          )}
-          {topics.length > 0 && (
-            <div>
-              <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: '11px',
-                fontWeight: 600,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--text-muted)',
-                marginBottom: '10px',
-              }}>
-                Focus areas
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {topics.map((t) => (
-                  <span key={t} style={{
-                    padding: '6px 14px',
-                    background: 'var(--indigo-light)',
-                    color: 'var(--indigo)',
-                    borderRadius: '99px',
+          {!goal && topics.length === 0 ? (
+            <p style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '14px',
+              color: 'var(--text-muted)',
+              textAlign: 'center',
+            }}>
+              Your plan is saved. Sign in to see it.
+            </p>
+          ) : (
+            <>
+              {goal && (
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{
                     fontFamily: "'DM Sans', sans-serif",
-                    fontSize: '13px',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)',
+                    marginBottom: '6px',
+                  }}>
+                    Goal
+                  </p>
+                  <p style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: '15px',
+                    color: 'var(--text-primary)',
                     fontWeight: 500,
                   }}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </div>
+                    {GOAL_LABELS[goal] || goal}
+                  </p>
+                </div>
+              )}
+              {topics.length > 0 && (
+                <div>
+                  <p style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: 'var(--text-muted)',
+                    marginBottom: '10px',
+                  }}>
+                    Focus areas
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {topics.map((t) => (
+                      <span key={t} style={{
+                        padding: '6px 14px',
+                        background: 'var(--indigo-light)',
+                        color: 'var(--indigo)',
+                        borderRadius: '99px',
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: '13px',
+                        fontWeight: 500,
+                      }}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 

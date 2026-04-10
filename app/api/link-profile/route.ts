@@ -42,11 +42,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ linked: true, already: true })
   }
 
-  // Link the session profile to this user
+  // Link the session profile to this user (only if not already owned)
   const { error } = await supabaseAdmin
     .from('user_profiles')
     .update({ user_id: user.id })
     .eq('session_id', session_id)
+    .is('user_id', null)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

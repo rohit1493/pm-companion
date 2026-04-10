@@ -129,6 +129,26 @@ export default function DashboardClient() {
             <span style={{ fontSize: '13px', color: '#94A3B8' }}>
               {userEmail.split('@')[0]}
             </span>
+            <button
+              onClick={async () => {
+                const supabase = createClient()
+                await supabase.auth.signOut()
+                window.location.href = '/auth'
+              }}
+              style={{
+                background: 'none',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                padding: '5px 12px',
+                fontSize: '12px',
+                color: '#64748B',
+                cursor: 'pointer',
+                fontFamily: "'DM Sans', sans-serif",
+                outline: 'none',
+              }}
+            >
+              Sign out
+            </button>
           </nav>
         </div>
       </header>

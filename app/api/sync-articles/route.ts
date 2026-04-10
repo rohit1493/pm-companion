@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import Parser from 'rss-parser'
 import { createClient } from '@supabase/supabase-js'
 import { RSS_SOURCES } from '@/lib/rss-sources'
@@ -23,7 +23,13 @@ function stripHtml(html: string): string {
   return html?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || ''
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const secret = request.headers.get('x-sync-secret')
+  const validSecret = process.env.SYNC_SECRET || 'pm-companion-sync'
+  if (secret !== validSecret) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const results: { source: string; inserted: number; error?: string }[] = []
 
   for (const source of RSS_SOURCES) {

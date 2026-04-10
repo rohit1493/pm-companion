@@ -337,13 +337,11 @@ export default function OnboardingFlow() {
       router.push('/onboarding/done')
     } catch (err) {
       console.error(err)
-      // Still navigate even if DB fails (don't block user)
-      localStorage.setItem('pm_goal', goal)
-      localStorage.setItem('pm_topics', JSON.stringify(topics))
-      router.push('/onboarding/done')
-    } finally {
+      setError('Something went wrong. Please try again.')
       setSubmitting(false)
+      return
     }
+    setSubmitting(false)
   }
 
   const canProceed = step === 1 ? !!experience : step === 2 ? !!goal : topics.length >= 1

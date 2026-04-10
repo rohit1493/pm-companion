@@ -86,12 +86,25 @@ export async function GET(request: NextRequest) {
   const pool = available.slice(0, 10)
   const picked = pool[Math.floor(Math.random() * pool.length)]
 
-  // Assign it
-  await supabaseAdmin.from('daily_articles').insert({
-    user_id: user.id,
-    article_id: picked.id,
-    assigned_date: today,
-  })
+  // Assign it — upsert to prevent race condition on concurrent requests
+  const { error: upsertError } = await supabaseAdmin
+    .from('daily_articles')
+    .upsert({
+      user_id: user.id,
+      article_id: picked.id,
+      assigned_date: today,
+    }, { onConflict: 'user_id,assigned_date', ignoreDuplicates: true })
+
+  if (upsertError) {
+    // Re-fetch in case another request won the race
+    const { data: retry } = await supabaseAdmin
+      .from('daily_articles')
+      .select('*, articles(*)')
+      .eq('user_id', user.id)
+      .eq('assigned_date', today)
+      .single()
+    if (retry?.articles) return NextResponse.json({ article: retry.articles, isNew: false })
+  }
 
   return NextResponse.json({ article: picked, isNew: true })
 }

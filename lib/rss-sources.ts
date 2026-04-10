@@ -45,4 +45,29 @@ export const RSS_SOURCES: RSSSource[] = [
     name: 'Department of Product',
     topics: ['PM Career', 'Product Strategy', 'Analytics'],
   },
+  {
+    url: 'https://feeds.feedburner.com/oreilly/radar',
+    name: 'O\'Reilly Radar',
+    topics: ['AI', 'Product Strategy'],
+  },
+  {
+    url: 'https://martinfowler.com/feed.atom',
+    name: 'Martin Fowler',
+    topics: ['Product Strategy', 'Analytics'],
+  },
+  {
+    url: 'https://casereads.com/feed',
+    name: 'Case Reads',
+    topics: ['Case Studies & Teardowns'],
+  },
+  {
+    url: 'https://www.growthunhinged.com/feed',
+    name: 'Growth Unhinged',
+    topics: ['GTM', 'Growth', 'B2B/SaaS'],
+  },
+  {
+    url: 'https://www.nfx.com/feed',
+    name: 'NFX',
+    topics: ['GTM', 'Startups', 'Growth'],
+  },
 ]

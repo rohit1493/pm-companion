@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import DailyArticleCard from './DailyArticleCard'
@@ -143,6 +143,7 @@ export default function FeedClient() {
   const [activeFilter, setActiveFilter] = useState('All')
   const [error, setError] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const initialLoadDone = useRef(false)
 
   const fetchArticles = useCallback(async (topics: string[], filter: string) => {
     setLoading(true)
@@ -165,9 +166,17 @@ export default function FeedClient() {
   }, [])
 
   const syncArticles = useCallback(async () => {
+    // Only sync once per hour
+    const lastSync = localStorage.getItem('pm_last_sync')
+    const oneHour = 60 * 60 * 1000
+    if (lastSync && Date.now() - parseInt(lastSync) < oneHour) return
+
     setSyncing(true)
     try {
-      await fetch('/api/sync-articles')
+      await fetch('/api/sync-articles', {
+        headers: { 'x-sync-secret': 'pm-companion-sync' }
+      })
+      localStorage.setItem('pm_last_sync', Date.now().toString())
     } catch (err) {
       console.error('Sync failed:', err)
     } finally {
@@ -177,31 +186,45 @@ export default function FeedClient() {
 
   useEffect(() => {
     const stored = localStorage.getItem('pm_topics')
-    const topics: string[] = stored ? JSON.parse(stored) : []
-    setUserTopics(topics)
-    // Sync then fetch with default 'All' filter
-    syncArticles().then(() => fetchArticles(topics, 'All'))
+    let topics: string[] = stored ? JSON.parse(stored) : []
 
-    // Fetch current user
     const supabaseClient = createClient()
-    supabaseClient.auth.getUser().then(({ data: { user } }) => {
+    supabaseClient.auth.getUser().then(async ({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
-    })
 
-    // Link onboarding profile to auth user
-    const sessionId = localStorage.getItem('pm_session_id')
-    if (sessionId) {
-      fetch('/api/link-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId }),
-      }).catch(() => {})
-    }
+      // Link onboarding profile to auth user
+      const sessionId = localStorage.getItem('pm_session_id')
+      if (sessionId) {
+        fetch('/api/link-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId }),
+        }).catch(() => {})
+      }
+
+      // If no topics in localStorage, fetch from profile (cross-device support)
+      if (topics.length === 0 && user) {
+        try {
+          const res = await fetch('/api/user-profile')
+          const profile = await res.json()
+          if (profile?.topics?.length > 0) {
+            topics = profile.topics
+            localStorage.setItem('pm_topics', JSON.stringify(topics))
+          }
+        } catch {}
+      }
+
+      setUserTopics(topics)
+      syncArticles().then(() => {
+        fetchArticles(topics, 'All')
+        initialLoadDone.current = true
+      })
+    })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [syncArticles, fetchArticles])
 
   useEffect(() => {
-    if (userTopics.length === 0 && activeFilter === 'All') return
+    if (!initialLoadDone.current) return  // skip — first useEffect handles initial load
     fetchArticles(userTopics, activeFilter)
   }, [activeFilter, fetchArticles, userTopics])
 

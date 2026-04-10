@@ -31,16 +31,15 @@ export default function DailyArticleCard() {
   const [read, setRead] = useState(false)
   const [marking, setMarking] = useState(false)
 
-  const today = new Date().toISOString().split('T')[0]
-
   useEffect(() => {
+    const todayDate = new Date().toISOString().split('T')[0]
     fetch('/api/daily-article')
       .then(r => r.json())
       .then(data => {
         if (data.article) {
           setArticle(data.article)
           // Check if already marked read today
-          const readKey = `pm_read_${today}_${data.article.id}`
+          const readKey = `pm_read_${todayDate}_${data.article.id}`
           if (localStorage.getItem(readKey) === 'true') {
             setRead(true)
           }
@@ -48,7 +47,7 @@ export default function DailyArticleCard() {
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [today])
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => setTimeLeft(timeUntilMidnight()), 60000)
@@ -58,6 +57,7 @@ export default function DailyArticleCard() {
   async function handleMarkRead() {
     if (!article || marking) return
     setMarking(true)
+    const todayDate = new Date().toISOString().split('T')[0]
     try {
       await fetch('/api/mark-read', {
         method: 'POST',
@@ -65,7 +65,7 @@ export default function DailyArticleCard() {
         body: JSON.stringify({ article_id: article.id }),
       })
       setRead(true)
-      localStorage.setItem(`pm_read_${today}_${article.id}`, 'true')
+      localStorage.setItem(`pm_read_${todayDate}_${article.id}`, 'true')
     } catch (err) {
       console.error(err)
     } finally {
