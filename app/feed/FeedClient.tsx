@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase-browser'
+import DailyArticleCard from './DailyArticleCard'
 
 type Article = {
   id: string
@@ -297,6 +298,9 @@ export default function FeedClient() {
           )}
         </div>
       </header>
+
+      {/* Daily article */}
+      <DailyArticleCard />
 
       {/* Article list */}
       <main
