@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   const { data: profile } = await supabaseAdmin
     .from('user_profiles')
     .select('topics')
-    .eq('session_id', user.id)
+    .eq('user_id', user.id)
     .single()
 
   // Pick a random article from user's topics that hasn't been assigned before

@@ -187,6 +187,16 @@ export default function FeedClient() {
     supabaseClient.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
     })
+
+    // Link onboarding profile to auth user
+    const sessionId = localStorage.getItem('pm_session_id')
+    if (sessionId) {
+      fetch('/api/link-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId }),
+      }).catch(() => {})
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

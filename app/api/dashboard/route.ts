@@ -69,8 +69,7 @@ export async function GET() {
   const { data: profile } = await supabaseAdmin
     .from('user_profiles')
     .select('experience_level, primary_goal, topics')
-    .order('created_at', { ascending: false })
-    .limit(1)
+    .eq('user_id', user.id)
     .single()
 
   // Recent reads (last 5)
