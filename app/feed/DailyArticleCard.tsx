@@ -27,24 +27,51 @@ export default function DailyArticleCard() {
   const [article, setArticle] = useState<Article | null>(null)
   const [loading, setLoading] = useState(true)
   const [timeLeft, setTimeLeft] = useState(timeUntilMidnight())
+  const [clicked, setClicked] = useState(false)
+  const [read, setRead] = useState(false)
+  const [marking, setMarking] = useState(false)
+
+  const today = new Date().toISOString().split('T')[0]
 
   useEffect(() => {
     fetch('/api/daily-article')
       .then(r => r.json())
       .then(data => {
-        setArticle(data.article || null)
+        if (data.article) {
+          setArticle(data.article)
+          // Check if already marked read today
+          const readKey = `pm_read_${today}_${data.article.id}`
+          if (localStorage.getItem(readKey) === 'true') {
+            setRead(true)
+          }
+        }
         setLoading(false)
       })
       .catch(() => setLoading(false))
-  }, [])
+  }, [today])
 
-  // Update countdown every minute
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(timeUntilMidnight())
-    }, 60000)
+    const interval = setInterval(() => setTimeLeft(timeUntilMidnight()), 60000)
     return () => clearInterval(interval)
   }, [])
+
+  async function handleMarkRead() {
+    if (!article || marking) return
+    setMarking(true)
+    try {
+      await fetch('/api/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ article_id: article.id }),
+      })
+      setRead(true)
+      localStorage.setItem(`pm_read_${today}_${article.id}`, 'true')
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setMarking(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -70,17 +97,21 @@ export default function DailyArticleCard() {
       margin: '16px',
       borderRadius: '16px',
       background: 'white',
-      border: '1.5px solid #4F46E5',
+      border: `1.5px solid ${read ? '#10B981' : '#4F46E5'}`,
       overflow: 'hidden',
-      boxShadow: '0 4px 24px rgba(79,70,229,0.08)',
+      boxShadow: read
+        ? '0 4px 24px rgba(16,185,129,0.08)'
+        : '0 4px 24px rgba(79,70,229,0.08)',
+      transition: 'border-color 400ms ease, box-shadow 400ms ease',
     }}>
       {/* Header bar */}
       <div style={{
-        background: '#4F46E5',
+        background: read ? '#10B981' : '#4F46E5',
         padding: '10px 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        transition: 'background 400ms ease',
       }}>
         <span style={{
           fontFamily: "'DM Sans', sans-serif",
@@ -90,14 +121,14 @@ export default function DailyArticleCard() {
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
         }}>
-          Today&apos;s Read
+          {read ? '✓ Read today' : "Today's Read"}
         </span>
         <span style={{
           fontFamily: "'DM Sans', sans-serif",
           fontSize: '11px',
           color: 'rgba(255,255,255,0.7)',
         }}>
-          New in {timeLeft}
+          {read ? 'New article tomorrow' : `New in ${timeLeft}`}
         </span>
       </div>
 
@@ -106,23 +137,21 @@ export default function DailyArticleCard() {
         href={article.url}
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          display: 'block',
-          padding: '20px',
-          textDecoration: 'none',
-        }}
+        onClick={() => setClicked(true)}
+        style={{ display: 'block', padding: '20px 20px 12px', textDecoration: 'none' }}
       >
         {/* Topics */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '10px' }}>
           {(article.topics || []).slice(0, 2).map((t) => (
             <span key={t} style={{
               padding: '3px 10px',
-              background: '#EEF2FF',
-              color: '#4F46E5',
+              background: read ? '#ECFDF5' : '#EEF2FF',
+              color: read ? '#059669' : '#4F46E5',
               borderRadius: '99px',
               fontSize: '11px',
               fontWeight: 500,
               fontFamily: "'DM Sans', sans-serif",
+              transition: 'background 400ms ease, color 400ms ease',
             }}>
               {t}
             </span>
@@ -158,7 +187,7 @@ export default function DailyArticleCard() {
           </p>
         )}
 
-        {/* Meta + CTA row */}
+        {/* Meta row */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -176,16 +205,78 @@ export default function DailyArticleCard() {
             <span>·</span>
             <span>{article.reading_time_minutes} min read</span>
           </div>
-          <span style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: '13px',
-            fontWeight: 500,
-            color: '#4F46E5',
-          }}>
-            Read →
-          </span>
+          {!read && (
+            <span style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '13px',
+              fontWeight: 500,
+              color: '#4F46E5',
+            }}>
+              Read →
+            </span>
+          )}
         </div>
       </a>
+
+      {/* Mark as read button — appears after user clicks the article */}
+      {!read && clicked && (
+        <div style={{
+          padding: '0 20px 20px',
+          opacity: clicked ? 1 : 0,
+          transform: clicked ? 'translateY(0)' : 'translateY(8px)',
+          transition: 'opacity 300ms ease, transform 300ms ease',
+        }}>
+          <button
+            onClick={handleMarkRead}
+            disabled={marking}
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: '#F0FDF4',
+              border: '1.5px solid #10B981',
+              borderRadius: '10px',
+              fontFamily: "'DM Sans', sans-serif",
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#059669',
+              cursor: marking ? 'wait' : 'pointer',
+              transition: 'all 200ms ease',
+              outline: 'none',
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#DCFCE7'
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#F0FDF4'
+            }}
+            onFocus={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 0 3px rgba(16,185,129,0.2)'
+            }}
+            onBlur={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none'
+            }}
+          >
+            {marking ? 'Saving...' : '✓ Mark as read'}
+          </button>
+        </div>
+      )}
+
+      {/* Already read confirmation */}
+      {read && (
+        <div style={{
+          padding: '0 20px 20px',
+          textAlign: 'center',
+        }}>
+          <p style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: '13px',
+            color: '#10B981',
+            fontWeight: 500,
+          }}>
+            Great work. Come back tomorrow for your next read.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
