@@ -321,14 +321,20 @@ export default function OnboardingFlow() {
         localStorage.setItem('pm_session_id', sessionId)
       }
 
-      const { error: dbError } = await supabase.from('user_profiles').insert({
-        experience_level: experience,
-        primary_goal: goal,
-        topics,
-        session_id: sessionId,
+      const res = await fetch('/api/save-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          experience_level: experience,
+          primary_goal: goal,
+          topics,
+          session_id: sessionId,
+        }),
       })
-
-      if (dbError) throw dbError
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to save profile')
+      }
 
       // Store selections for done page
       localStorage.setItem('pm_goal', goal)
