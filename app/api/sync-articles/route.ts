@@ -175,5 +175,5 @@ export async function GET(request: NextRequest) {
   }
 
   const total = results.reduce((sum, r) => sum + r.inserted, 0)
-  return NextResponse.json({ synced: total, enriched, sources: results })
+  return NextResponse.json({ synced: total, enriched, toEnrichCount: (toEnrich || []).length, sources: results })
 }
