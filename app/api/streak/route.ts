@@ -28,7 +28,24 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ streak: 0, readToday: false })
 
-  // Get all read days for this user, ordered descending
+  // Check if user has an archetype (path user) — use user_profiles.streak if so
+  const { data: profile } = await supabaseAdmin
+    .from('user_profiles')
+    .select('archetype, streak, last_active_at')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (profile?.archetype) {
+    const today = new Date().toISOString().split('T')[0]
+    const lastActive = profile.last_active_at ? profile.last_active_at.split('T')[0] : null
+    return NextResponse.json({
+      streak: profile.streak || 0,
+      readToday: lastActive === today,
+      totalRead: profile.streak || 0,
+    })
+  }
+
+  // Legacy users: calculate from daily_articles
   const { data: readDays } = await supabaseAdmin
     .from('daily_articles')
     .select('assigned_date')
@@ -45,14 +62,12 @@ export async function GET() {
 
   const readToday = readDays[0].assigned_date === today
 
-  // Calculate streak: count consecutive days ending today or yesterday
   let streak = 0
   let checkDate = readToday ? today : yesterday
 
   for (const row of readDays) {
     if (row.assigned_date === checkDate) {
       streak++
-      // Move to previous day
       const d = new Date(checkDate)
       d.setDate(d.getDate() - 1)
       checkDate = d.toISOString().split('T')[0]
@@ -61,7 +76,6 @@ export async function GET() {
     }
   }
 
-  // If didn't read today and didn't read yesterday, streak is 0
   if (!readToday && readDays[0].assigned_date !== yesterday) {
     streak = 0
   }

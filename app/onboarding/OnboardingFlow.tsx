@@ -407,12 +407,10 @@ export default function OnboardingFlow() {
 
   // Navigation
   const [step, setStep] = useState(1)
+  const [showLoader, setShowLoader] = useState(false)
 
   // Archetype (computed when reaching reveal)
   const [archetype, setArchetype] = useState<Archetype | null>(null)
-
-  // Loading screen between last question and reveal
-  const [showLoader, setShowLoader] = useState(false)
 
   // Submit state
   const [submitting, setSubmitting] = useState(false)

@@ -14,9 +14,14 @@ alter table articles
   add column if not exists is_active       boolean default true;
 
 -- difficulty: 1 = Introductory, 2 = Intermediate, 3 = Advanced
--- hooks: JSONB array of hook strings per archetype, e.g. {"faang_climber": "...", "scanner": "..."}
+-- hooks: JSONB array of hook strings per archetype
 -- is_active: false = skip in feed (dead URL or retired article)
 
 create index if not exists articles_category_idx    on articles(category);
 create index if not exists articles_difficulty_idx  on articles(difficulty);
 create index if not exists articles_is_active_idx   on articles(is_active);
+
+-- Add streak columns to user_profiles (for unified streak tracking)
+alter table user_profiles
+  add column if not exists streak              int default 0,
+  add column if not exists streak_last_updated timestamptz;

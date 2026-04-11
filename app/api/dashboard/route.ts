@@ -31,7 +31,7 @@ export async function GET() {
   // User profile (with archetype fields)
   const { data: profile } = await supabaseAdmin
     .from('user_profiles')
-    .select('experience_level, primary_goal, topics, archetype, archetype_display, archetype_tagline, sequence')
+    .select('experience_level, primary_goal, topics, archetype, archetype_display, archetype_tagline, sequence, streak, streak_last_updated')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -74,23 +74,30 @@ export async function GET() {
   const totalRead = completedCount > 0 ? completedCount : readDays.length
   const totalAssigned = totalInPath > 0 ? totalInPath : (allDays || []).length
 
-  // Streak calculation (48-hour grace period)
+  // Streak calculation — use user_profiles.streak for path users, daily_articles for legacy
   let streak = 0
   const readToday = readDays[0]?.assigned_date === today
-  let checkDate = readToday
-    ? today
-    : new Date(Date.now() - 86400000).toISOString().split('T')[0]
 
-  for (const row of readDays) {
-    if (row.assigned_date === checkDate) {
-      streak++
-      const d = new Date(checkDate)
-      d.setDate(d.getDate() - 1)
-      checkDate = d.toISOString().split('T')[0]
-    } else break
-  }
-  if (!readToday && readDays[0]?.assigned_date !== new Date(Date.now() - 86400000).toISOString().split('T')[0]) {
-    streak = 0
+  if (profile?.archetype) {
+    // Path users: streak is managed by quiz completion in user_profiles
+    streak = profile.streak || 0
+  } else {
+    // Legacy users: calculate from daily_articles
+    let checkDate = readToday
+      ? today
+      : new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+    for (const row of readDays) {
+      if (row.assigned_date === checkDate) {
+        streak++
+        const d = new Date(checkDate)
+        d.setDate(d.getDate() - 1)
+        checkDate = d.toISOString().split('T')[0]
+      } else break
+    }
+    if (!readToday && readDays[0]?.assigned_date !== new Date(Date.now() - 86400000).toISOString().split('T')[0]) {
+      streak = 0
+    }
   }
 
   // Last 7 days (from daily_articles for streaks or from user_progress completed dates)

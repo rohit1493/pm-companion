@@ -125,13 +125,34 @@ export async function POST(request: NextRequest) {
     .eq('user_id', user.id)
     .in('article_id', article_ids)
 
-  // Update streak
+  // Update streak (unified system via user_profiles)
+  const now = new Date()
+  const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+
+  const { data: profile } = await supabaseAdmin
+    .from('user_profiles')
+    .select('streak, streak_last_updated')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const lastUpdated = profile?.streak_last_updated ? new Date(profile.streak_last_updated) : null
+  const currentStreak = profile?.streak || 0
+
+  // Within 48hr grace → increment; beyond 48hr → reset to 1
+  const newStreak = lastUpdated && lastUpdated > fortyEightHoursAgo
+    ? currentStreak + 1
+    : 1
+
   await supabaseAdmin
     .from('user_profiles')
-    .update({ last_active_at: new Date().toISOString() })
+    .update({
+      last_active_at: now.toISOString(),
+      streak: newStreak,
+      streak_last_updated: now.toISOString(),
+    })
     .eq('user_id', user.id)
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, streak: newStreak })
 }
 
 // Simple distractors for when questions don't have pre-made options

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import UnlockAnimation from './UnlockAnimation'
 
 type Article = {
   id: string
@@ -66,6 +67,7 @@ export default function ArticleCard({
   )
   const [timeAccumulated, setTimeAccumulated] = useState(row.time_on_article_seconds || 0)
   const [saving, setSaving] = useState(false)
+  const [showUnlock, setShowUnlock] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const startRef = useRef<number | null>(null)
   const isReadingRef = useRef(false)
@@ -82,7 +84,7 @@ export default function ArticleCard({
       const data = await res.json()
       if (data.passed) {
         setGateState('returned_pass')
-        onGatePassed()
+        setShowUnlock(true)
       } else {
         setGateState('returned_fail')
       }
@@ -116,7 +118,7 @@ export default function ArticleCard({
             const currentTotal = timeAccumulated
             if (currentTotal >= 30) {
               setGateState('returned_pass')
-              onGatePassed()
+              setShowUnlock(true)
             } else {
               setGateState('returned_fail')
             }
@@ -149,6 +151,7 @@ export default function ArticleCard({
       overflow: 'hidden',
       marginBottom: '16px',
     }}>
+      {showUnlock && <UnlockAnimation onComplete={() => { setShowUnlock(false); onGatePassed() }} />}
       {/* Position header */}
       <div style={{
         padding: '14px 20px',
