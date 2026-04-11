@@ -40,12 +40,12 @@ export async function generateMetadata({ params }: { params: Promise<{ userId: s
   const { streak, totalRead } = await getShareData(userId)
 
   return {
-    title: `${streak} day streak on PM Companion`,
-    description: `I've read ${totalRead} PM articles and built a ${streak}-day reading streak. Join me on PM Companion.`,
+    title: `${streak} day streak on PM Dojo`,
+    description: `I've read ${totalRead} PM articles and built a ${streak}-day reading streak. Join me on PM Dojo.`,
     openGraph: {
       title: `${streak} day streak 🔥`,
-      description: `${totalRead} articles read on PM Companion`,
-      siteName: 'PM Companion',
+      description: `${totalRead} articles read on PM Dojo`,
+      siteName: 'PM Dojo',
     },
   }
 }
@@ -85,7 +85,7 @@ export default async function SharePage({ params }: { params: Promise<{ userId: 
           marginBottom: '32px',
           letterSpacing: '0.01em',
         }}>
-          PM Companion
+          PM Dojo
         </p>
 
         {/* Streak display */}
@@ -130,7 +130,7 @@ export default async function SharePage({ params }: { params: Promise<{ userId: 
           marginBottom: '32px',
         }}>
           <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6 }}>
-            I've read <strong style={{ color: '#1E293B' }}>{totalRead} PM articles</strong> to stay sharp on product strategy, growth, and leadership.
+            I&apos;ve read <strong style={{ color: '#1E293B' }}>{totalRead} PM articles</strong> and built a {streak}-day streak on PM Dojo.
           </p>
         </div>
 

@@ -376,11 +376,15 @@ export default function FeedClient() {
 
       const sessionId = localStorage.getItem('pm_session_id')
       if (sessionId) {
-        fetch('/api/link-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: sessionId }),
-        }).catch(() => {})
+        // Await link-profile before loading feed so path is ready on first login
+        try {
+          await fetch('/api/link-profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId }),
+          })
+          localStorage.removeItem('pm_session_id')
+        } catch {}
       }
 
       await loadFeed()
@@ -395,9 +399,11 @@ export default function FeedClient() {
         setFeedData(data)
         if (data.viewType === 'path' && data.quizReady) {
           setPhase('quiz')
+        } else {
+          setPhase('feed')
         }
       })
-      .catch(() => {})
+      .catch(() => { setPhase('feed') })
   }
 
   function handleQuizComplete(result: QuizResult) {

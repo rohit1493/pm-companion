@@ -33,7 +33,7 @@ export async function GET() {
     .from('user_profiles')
     .select('experience_level, primary_goal, topics, archetype, archetype_display, archetype_tagline, sequence')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   // Path progress from user_progress
   const { data: progressRows } = await supabaseAdmin

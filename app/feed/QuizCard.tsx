@@ -55,12 +55,13 @@ export default function QuizCard({
         setFetchError(true)
         setLoading(false)
       })
-  }, [articleIds])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [articleIds.join(',')])
 
   async function finishQuiz(finalCorrect: number) {
     setSubmitting(true)
     try {
-      await fetch('/api/quiz', {
+      const res = await fetch('/api/quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,7 +70,12 @@ export default function QuizCard({
           correct_answers: finalCorrect,
         }),
       })
-    } catch {}
+      if (!res.ok) throw new Error('Save failed')
+    } catch {
+      setSubmitting(false)
+      setFetchError(true)
+      return
+    }
 
     setSubmitting(false)
     onComplete({
