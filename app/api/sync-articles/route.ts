@@ -149,7 +149,6 @@ export async function GET(request: NextRequest) {
     .from('articles')
     .select('id, title, summary')
     .is('summary_short', null)
-    .neq('is_active', false)
     .limit(20)
 
   let enriched = 0
