@@ -38,6 +38,8 @@ async function isUrlAlive(url: string): Promise<boolean> {
   }
 }
 
+let lastEnrichErr = ''
+
 async function enrichArticle(article: {
   id: string
   title: string
@@ -84,7 +86,7 @@ difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and
     const json = JSON.parse(text.trim())
     return json
   } catch (e) {
-    console.error('enrichArticle error:', e)
+    lastEnrichErr = e instanceof Error ? e.message : String(e)
     return null
   }
 }
@@ -177,5 +179,5 @@ export async function GET(request: NextRequest) {
   }
 
   const total = results.reduce((sum, r) => sum + r.inserted, 0)
-  return NextResponse.json({ synced: total, enriched, toEnrichCount: (toEnrich || []).length, enrichError, sources: results })
+  return NextResponse.json({ synced: total, enriched, toEnrichCount: (toEnrich || []).length, enrichError: lastEnrichErr, sources: results })
 }
