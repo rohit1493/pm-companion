@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-browser'
 import ArticleCard from './ArticleCard'
 import QuizCard from './QuizCard'
 import KeyInsightCard from './KeyInsightCard'
+import UnlockAnimation from './UnlockAnimation'
 
 // --- TYPES ---
 
@@ -68,7 +69,7 @@ type QuizResult = {
   articles: { id: string; title: string; key_insight: string | null }[]
 }
 
-type FeedPhase = 'loading' | 'feed' | 'quiz' | 'insights'
+type FeedPhase = 'loading' | 'feed' | 'unlocking' | 'quiz' | 'insights'
 
 // --- HELPERS ---
 
@@ -392,7 +393,10 @@ export default function FeedClient() {
   }, [loadFeed])
 
   function handleGatePassed() {
-    // Re-check if quiz should fire by refreshing feed
+    setPhase('unlocking')
+  }
+
+  function handleUnlockComplete() {
     fetch('/api/feed')
       .then((r) => r.json())
       .then((data: FeedData) => {
@@ -483,11 +487,17 @@ export default function FeedClient() {
           </>
         )}
 
+        {/* UNLOCK ANIMATION */}
+        {phase === 'unlocking' && (
+          <UnlockAnimation onComplete={handleUnlockComplete} />
+        )}
+
         {/* QUIZ PHASE */}
         {phase === 'quiz' && pathData && (
           <QuizCard
             articleIds={pathData.quizArticleIds}
             onComplete={handleQuizComplete}
+            onReRead={loadFeed}
           />
         )}
 

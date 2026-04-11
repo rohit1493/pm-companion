@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { assignArchetype, type Archetype } from '@/lib/archetypes'
+import LoadingScreen from './LoadingScreen'
 
 // --- HELPERS ---
 
@@ -410,6 +411,9 @@ export default function OnboardingFlow() {
   // Archetype (computed when reaching reveal)
   const [archetype, setArchetype] = useState<Archetype | null>(null)
 
+  // Loading screen between last question and reveal
+  const [showLoader, setShowLoader] = useState(false)
+
   // Submit state
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -418,9 +422,14 @@ export default function OnboardingFlow() {
   const totalSteps = goal === 'stay_updated' ? 2 : goal === 'deep_skill' ? 4 : 5
 
   function computeAndReveal() {
+    setShowLoader(true)
+  }
+
+  function handleLoaderComplete() {
     const a = assignArchetype(goal, target, upskillFocus)
     setArchetype(a)
     setStep(totalSteps)
+    setShowLoader(false)
   }
 
   async function handleStart() {
@@ -480,6 +489,10 @@ export default function OnboardingFlow() {
     setWeakAreas((prev) =>
       prev.includes(area) ? prev.filter((a) => a !== area) : [...prev, area]
     )
+  }
+
+  if (showLoader) {
+    return <LoadingScreen onComplete={handleLoaderComplete} />
   }
 
   return (

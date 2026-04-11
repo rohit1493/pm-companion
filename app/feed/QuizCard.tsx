@@ -28,9 +28,11 @@ type QuizState =
 export default function QuizCard({
   articleIds,
   onComplete,
+  onReRead,
 }: {
   articleIds: string[]
   onComplete: (results: { articleIds: string[]; correct: number; total: number; articles: QuizArticle[] }) => void
+  onReRead?: () => void
 }) {
   const [questions, setQuestions] = useState<Question[]>([])
   const [articles, setArticles] = useState<QuizArticle[]>([])
@@ -315,28 +317,68 @@ export default function QuizCard({
       )()}
 
       {/* SCORE */}
-      {quizState.phase === 'score' && (
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '44px', marginBottom: '16px' }}>
-            {quizState.correctCount >= quizState.totalCount * 0.75 ? '🎯' : '📚'}
+      {quizState.phase === 'score' && (() => {
+        const { correctCount: cc, totalCount: tc } = quizState
+        const pct = tc > 0 ? cc / tc : 0
+        const stars = Math.round(pct * 4)
+        const starDisplay = '★'.repeat(stars) + '☆'.repeat(4 - stars)
+        const isLow = pct <= 0.25
+
+        let emoji = '🎯'
+        let copy = 'Sharp. Key insights unlocked below.'
+        if (pct < 0.75 && pct > 0.25) { emoji = '📚'; copy = 'Good effort. Read the insights to reinforce.' }
+        if (isLow) { emoji = '😅'; copy = 'You may want to re-read before continuing.' }
+
+        return (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '44px', marginBottom: '12px' }}>{emoji}</div>
+            <div style={{
+              fontSize: '22px',
+              letterSpacing: '4px',
+              color: pct >= 0.75 ? '#F59E0B' : pct > 0.25 ? '#94A3B8' : '#CBD5E1',
+              marginBottom: '12px',
+            }}>
+              {starDisplay}
+            </div>
+            <h2 style={headingStyle}>{cc}/{tc} correct</h2>
+            <p style={{ ...bodyStyle, marginBottom: '28px' }}>{copy}</p>
+
+            {isLow && onReRead ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button
+                  onClick={onReRead}
+                  style={{ ...primaryBtn, background: '#1E293B' }}
+                >
+                  Re-read the articles →
+                </button>
+                <button
+                  onClick={() => finishQuiz(cc)}
+                  disabled={submitting}
+                  style={{
+                    ...primaryBtn,
+                    background: 'none',
+                    color: '#94A3B8',
+                    border: '1px solid #E2E8F0',
+                    opacity: submitting ? 0.7 : 1,
+                    fontSize: '13px',
+                    padding: '12px 24px',
+                  }}
+                >
+                  {submitting ? 'Saving...' : 'Continue anyway'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => finishQuiz(cc)}
+                disabled={submitting}
+                style={{ ...primaryBtn, opacity: submitting ? 0.7 : 1 }}
+              >
+                {submitting ? 'Saving...' : 'See key insights →'}
+              </button>
+            )}
           </div>
-          <h2 style={headingStyle}>
-            {quizState.correctCount}/{quizState.totalCount} correct
-          </h2>
-          <p style={{ ...bodyStyle, marginBottom: '28px' }}>
-            {quizState.correctCount >= quizState.totalCount * 0.75
-              ? 'Solid. Key insights are unlocked below.'
-              : 'Good effort. Read the insights below to reinforce.'}
-          </p>
-          <button
-            onClick={() => finishQuiz(quizState.correctCount)}
-            disabled={submitting}
-            style={{ ...primaryBtn, opacity: submitting ? 0.7 : 1 }}
-          >
-            {submitting ? 'Saving...' : 'See key insights →'}
-          </button>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
