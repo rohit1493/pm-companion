@@ -100,16 +100,27 @@ export default function ArticleCard({
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        // User switched to article tab — start timing
+        // App tab hidden = user switched to article tab — start timing
         startRef.current = Date.now()
         isReadingRef.current = true
       } else {
-        // User returned to app tab
+        // App tab visible = user returned from article tab
         if (isReadingRef.current && startRef.current) {
           const elapsed = Math.floor((Date.now() - startRef.current) / 1000)
           isReadingRef.current = false
           startRef.current = null
-          saveTime(elapsed)
+          if (elapsed > 0) {
+            saveTime(elapsed)
+          } else {
+            // Sub-second return — check accumulated time to avoid stuck state
+            const currentTotal = timeAccumulated
+            if (currentTotal >= 30) {
+              setGateState('returned_pass')
+              onGatePassed()
+            } else {
+              setGateState('returned_fail')
+            }
+          }
         }
       }
     }

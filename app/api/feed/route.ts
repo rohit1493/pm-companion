@@ -28,12 +28,12 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Get user profile
+  // Get user profile (maybeSingle = no error when 0 rows)
   const { data: profile } = await supabaseAdmin
     .from('user_profiles')
     .select('archetype, archetype_display, archetype_tagline, sequence')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
   const isScanner = !profile?.archetype || profile.archetype === 'scanner'
 
@@ -42,6 +42,7 @@ export async function GET() {
     const { data: articles } = await supabaseAdmin
       .from('articles')
       .select('id, title, url, source, published_at, summary, summary_short, topics, reading_time_minutes, category, difficulty, hooks, key_insight')
+      .eq('is_active', true)
       .order('published_at', { ascending: false })
       .limit(20)
 

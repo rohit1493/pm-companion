@@ -74,15 +74,19 @@ function StatCard({ value, label, accent }: { value: string | number; label: str
 export default function DashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState('')
   const [copyToast, setCopyToast] = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed to load dashboard')
+        return r.json()
+      })
       .then((d) => { setData(d); setLoading(false) })
-      .catch(() => setLoading(false))
+      .catch(() => { setFetchError(true); setLoading(false) })
 
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -92,6 +96,7 @@ export default function DashboardClient() {
   }, [])
 
   function handleShare() {
+    if (!userId) return
     const shareUrl = `${window.location.origin}/share/${userId}`
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopyToast(true)
@@ -169,6 +174,37 @@ export default function DashboardClient() {
             {[1, 2, 3].map((i) => (
               <div key={i} style={{ flex: 1, height: '90px', background: '#F1F5F9', borderRadius: '14px' }} />
             ))}
+          </div>
+        ) : fetchError ? (
+          <div style={{
+            background: 'white',
+            border: '1px solid #FED7AA',
+            borderRadius: '14px',
+            padding: '32px',
+            textAlign: 'center',
+            marginBottom: '16px',
+          }}>
+            <p style={{ fontSize: '14px', fontWeight: 500, color: '#C2410C', marginBottom: '8px', fontFamily: "'DM Sans', sans-serif" }}>
+              Couldn&apos;t load your dashboard
+            </p>
+            <p style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '16px', fontFamily: "'DM Sans', sans-serif" }}>
+              Check your connection and reload the page.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: '10px 20px',
+                background: '#4F46E5',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontFamily: "'DM Sans', sans-serif",
+                cursor: 'pointer',
+              }}
+            >
+              Reload
+            </button>
           </div>
         ) : data && (
           <>

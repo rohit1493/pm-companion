@@ -34,6 +34,8 @@ export async function POST(request: NextRequest) {
   if (!article_id || typeof seconds_to_add !== 'number') {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
+  // Guard against negative or absurdly large values (max 5 minutes per session)
+  const safeSecs = Math.max(0, Math.min(300, seconds_to_add))
 
   // Get current progress row
   const { data: row } = await supabaseAdmin
@@ -47,7 +49,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Article not in your path' }, { status: 404 })
   }
 
-  const newTotal = (row.time_on_article_seconds || 0) + Math.max(0, seconds_to_add)
+  const newTotal = (row.time_on_article_seconds || 0) + safeSecs
   const passed = newTotal >= READ_GATE_SECONDS
 
   // Update time and gate status

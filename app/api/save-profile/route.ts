@@ -7,6 +7,9 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const VALID_GOALS = ['interview_prep', 'deep_skill', 'stay_updated', 'interviews', 'trends', 'upskill', 'all']
+const VALID_ARCHETYPES = ['faang_climber', 'startup_climber', 'ai_first_pm', 'growth_pm', 'scanner']
+
 export async function POST(request: NextRequest) {
   const body = await request.json()
   const {
@@ -26,6 +29,14 @@ export async function POST(request: NextRequest) {
 
   if (!session_id) {
     return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })
+  }
+
+  // Validate archetype if provided
+  if (archetype && !VALID_ARCHETYPES.includes(archetype)) {
+    return NextResponse.json({ error: 'Invalid archetype' }, { status: 400 })
+  }
+  if (goal && !VALID_GOALS.includes(goal)) {
+    return NextResponse.json({ error: 'Invalid goal' }, { status: 400 })
   }
 
   // Build sequence from articles if we have an archetype
@@ -55,29 +66,45 @@ export async function POST(request: NextRequest) {
     sequence = (articles || []).map((a) => a.id)
   }
 
-  // Upsert profile (handle both new and returning users)
   const profileData: Record<string, unknown> = {
     session_id,
-    // New PM Dojo fields
     ...(goal && { primary_goal: goal }),
     ...(target_company && { target_company }),
     ...(upskill_focus && { upskill_focus }),
     ...(experience_level && { experience_level }),
-    ...(weak_areas && { weak_areas }),
+    ...(weak_areas && Array.isArray(weak_areas) && { weak_areas }),
     ...(archetype && { archetype }),
     ...(archetype_display && { archetype_display }),
     ...(archetype_tagline && { archetype_tagline }),
     ...(sequence.length > 0 && { sequence }),
     // Legacy compatibility
     ...(primary_goal && !goal && { primary_goal }),
-    ...(topics && { topics }),
+    ...(topics && Array.isArray(topics) && { topics }),
   }
 
-  const { error } = await supabaseAdmin
+  // Check if session already exists — upsert safely without needing unique constraint
+  const { data: existing } = await supabaseAdmin
     .from('user_profiles')
-    .upsert(profileData, { onConflict: 'session_id' })
+    .select('id')
+    .eq('session_id', session_id)
+    .maybeSingle()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (existing) {
+    // Update existing profile
+    const { error } = await supabaseAdmin
+      .from('user_profiles')
+      .update(profileData)
+      .eq('session_id', session_id)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  } else {
+    // Insert new profile
+    const { error } = await supabaseAdmin
+      .from('user_profiles')
+      .insert(profileData)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   return NextResponse.json({ success: true, archetype, sequence })
 }

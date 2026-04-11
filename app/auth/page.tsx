@@ -52,10 +52,10 @@ export default function AuthPage() {
             color: '#1E293B',
             marginBottom: '8px',
           }}>
-            PM Companion
+            PM Dojo
           </p>
           <p style={{ fontSize: '14px', color: '#94A3B8' }}>
-            Your goal-anchored PM learning path
+            Your personalised PM learning path
           </p>
         </div>
 

@@ -37,17 +37,24 @@ export default function QuizCard({
   const [quizState, setQuizState] = useState<QuizState>({ phase: 'intro' })
   const [correctCount, setCorrectCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     fetch(`/api/quiz?article_ids=${articleIds.join(',')}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('Failed to load quiz')
+        return r.json()
+      })
       .then((data) => {
         setQuestions(data.questions || [])
         setArticles(data.articles || [])
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => {
+        setFetchError(true)
+        setLoading(false)
+      })
   }, [articleIds])
 
   async function finishQuiz(finalCorrect: number) {
@@ -111,8 +118,47 @@ export default function QuizCard({
     )
   }
 
+  if (fetchError) {
+    return (
+      <div style={containerStyle}>
+        <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+          <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚠️</div>
+          <p style={{ ...bodyStyle, fontWeight: 500, color: '#DC2626', marginBottom: '8px' }}>
+            Couldn&apos;t load quiz
+          </p>
+          <p style={{ ...mutedStyle, marginBottom: '20px' }}>
+            Check your connection and try again.
+          </p>
+          <button
+            onClick={() => {
+              setFetchError(false)
+              setLoading(true)
+              fetch(`/api/quiz?article_ids=${articleIds.join(',')}`)
+                .then((r) => {
+                  if (!r.ok) throw new Error('Failed to load quiz')
+                  return r.json()
+                })
+                .then((data) => {
+                  setQuestions(data.questions || [])
+                  setArticles(data.articles || [])
+                  setLoading(false)
+                })
+                .catch(() => {
+                  setFetchError(true)
+                  setLoading(false)
+                })
+            }}
+            style={primaryBtn}
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (questions.length === 0) {
-    // No questions seeded — skip quiz
+    // No questions seeded — skip quiz silently
     finishQuiz(0)
     return null
   }

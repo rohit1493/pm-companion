@@ -18,7 +18,11 @@ export default function DonePage() {
   useEffect(() => {
     setGoal(localStorage.getItem('pm_goal') || '')
     const t = localStorage.getItem('pm_topics')
-    setTopics(t ? JSON.parse(t) : [])
+    try {
+      setTopics(t ? JSON.parse(t) : [])
+    } catch {
+      setTopics([])
+    }
     const timer = setTimeout(() => setVisible(true), 100)
     return () => clearTimeout(timer)
   }, [])

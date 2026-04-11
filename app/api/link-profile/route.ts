@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 async function ensureUserProgress(
   userId: string,
   sequence: string[] | null,
-  archetype: string | null,
+  _archetype: string | null,
 ) {
   if (!sequence || sequence.length === 0) return
 
@@ -82,13 +82,13 @@ async function ensureUserProgress(
 
   const existingIds = new Set((existingProgress || []).map((p) => p.article_id))
 
-  // Create missing rows
+  // Create missing rows — position comes from sequence order (1-indexed)
   const toInsert = sequence
     .filter((articleId) => !existingIds.has(articleId))
-    .map((articleId, idx) => ({
+    .map((articleId) => ({
       user_id: userId,
       article_id: articleId,
-      position: (existingProgress?.length || 0) + idx + 1,
+      position: sequence.indexOf(articleId) + 1,
       read_gate_passed: false,
       time_on_article_seconds: 0,
       completed: false,
