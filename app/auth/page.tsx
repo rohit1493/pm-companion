@@ -3,57 +3,53 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 
-type Mode = 'magic' | 'password'
-type State = 'idle' | 'loading' | 'sent' | 'error'
+type Mode = 'signin' | 'signup'
+type State = 'idle' | 'loading' | 'done' | 'error'
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<Mode>('magic')
+  const [mode, setMode] = useState<Mode>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [state, setState] = useState<State>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
-  async function handleMagicLink(e: React.FormEvent) {
-    e.preventDefault()
-    if (!email.trim()) return
-    setState('loading')
-    setErrorMsg('')
-
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      setState('error')
-      setErrorMsg(error.message)
-    } else {
-      setState('sent')
-    }
-  }
-
-  async function handlePassword(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || !password.trim()) return
     setState('loading')
     setErrorMsg('')
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password.trim(),
-    })
 
-    if (error) {
-      setState('error')
-      setErrorMsg(error.message)
+    if (mode === 'signin') {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password.trim(),
+      })
+      if (error) {
+        setState('error')
+        setErrorMsg(error.message)
+      } else {
+        window.location.href = '/feed'
+      }
     } else {
-      window.location.href = '/feed'
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) {
+        setState('error')
+        setErrorMsg(error.message)
+      } else {
+        setState('done')
+      }
     }
   }
+
+  const canSubmit = email.trim() && password.trim() && state !== 'loading'
 
   return (
     <div style={{
@@ -82,7 +78,8 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {state === 'sent' ? (
+        {state === 'done' && mode === 'signup' ? (
+          /* Signup success */
           <div style={{
             background: 'white',
             border: '1px solid #E2E8F0',
@@ -90,7 +87,7 @@ export default function AuthPage() {
             padding: '40px 32px',
             textAlign: 'center',
           }}>
-            <div style={{ fontSize: '40px', marginBottom: '16px' }}>📬</div>
+            <div style={{ fontSize: '40px', marginBottom: '16px' }}>🎉</div>
             <h2 style={{
               fontFamily: "'Instrument Serif', serif",
               fontSize: '22px',
@@ -98,32 +95,27 @@ export default function AuthPage() {
               color: '#1E293B',
               marginBottom: '10px',
             }}>
-              Check your inbox
+              Account created!
             </h2>
-            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6 }}>
-              We sent a magic link to<br />
-              <strong style={{ color: '#1E293B' }}>{email}</strong>
-            </p>
-            <p style={{ fontSize: '13px', color: '#94A3B8', marginTop: '16px' }}>
-              Click the link to sign in. No password needed.
-            </p>
-            <p style={{ fontSize: '12px', color: '#CBD5E1', marginTop: '10px', lineHeight: 1.5 }}>
-              Can&apos;t find it? Check your <strong style={{ color: '#94A3B8' }}>spam or junk folder</strong>.
+            <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, marginBottom: '24px' }}>
+              You can now sign in with your email and password.
             </p>
             <button
-              onClick={() => { setState('idle'); setEmail('') }}
+              onClick={() => { setMode('signin'); setState('idle') }}
               style={{
-                marginTop: '24px',
-                background: 'none',
+                width: '100%',
+                padding: '14px',
+                background: '#4F46E5',
+                color: 'white',
                 border: 'none',
-                color: '#4F46E5',
-                fontSize: '13px',
-                cursor: 'pointer',
+                borderRadius: '10px',
+                fontSize: '15px',
+                fontWeight: 500,
                 fontFamily: "'DM Sans', sans-serif",
-                textDecoration: 'underline',
+                cursor: 'pointer',
               }}
             >
-              Use a different email
+              Sign in →
             </button>
           </div>
         ) : (
@@ -141,7 +133,7 @@ export default function AuthPage() {
               padding: '4px',
               marginBottom: '28px',
             }}>
-              {(['magic', 'password'] as Mode[]).map((m) => (
+              {(['signin', 'signup'] as Mode[]).map((m) => (
                 <button
                   key={m}
                   onClick={() => { setMode(m); setState('idle'); setErrorMsg('') }}
@@ -160,7 +152,7 @@ export default function AuthPage() {
                     transition: 'all 150ms ease',
                   }}
                 >
-                  {m === 'magic' ? 'Magic link' : 'Password'}
+                  {m === 'signin' ? 'Sign in' : 'Create account'}
                 </button>
               ))}
             </div>
@@ -172,15 +164,15 @@ export default function AuthPage() {
               color: '#1E293B',
               marginBottom: '8px',
             }}>
-              Sign in
+              {mode === 'signin' ? 'Welcome back' : 'Get started'}
             </h1>
             <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '28px' }}>
-              {mode === 'magic'
-                ? "We'll send you a magic link — no password needed."
-                : 'Sign in with your email and password.'}
+              {mode === 'signin'
+                ? 'Sign in to continue your learning path.'
+                : 'Create your account to save your progress.'}
             </p>
 
-            <form onSubmit={mode === 'magic' ? handleMagicLink : handlePassword}>
+            <form onSubmit={handleSubmit}>
               <label htmlFor="email" style={{
                 display: 'block',
                 fontSize: '13px',
@@ -215,42 +207,39 @@ export default function AuthPage() {
                 onBlur={(e) => { e.currentTarget.style.borderColor = '#E2E8F0' }}
               />
 
-              {mode === 'password' && (
-                <>
-                  <label htmlFor="password" style={{
-                    display: 'block',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    color: '#475569',
-                    marginBottom: '8px',
-                  }}>
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      border: '1.5px solid #E2E8F0',
-                      borderRadius: '10px',
-                      fontSize: '15px',
-                      fontFamily: "'DM Sans', sans-serif",
-                      color: '#1E293B',
-                      outline: 'none',
-                      transition: 'border-color 150ms ease',
-                      marginBottom: '12px',
-                      boxSizing: 'border-box',
-                    }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#4F46E5' }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#E2E8F0' }}
-                  />
-                </>
-              )}
+              <label htmlFor="password" style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#475569',
+                marginBottom: '8px',
+              }}>
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                minLength={6}
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  border: '1.5px solid #E2E8F0',
+                  borderRadius: '10px',
+                  fontSize: '15px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  color: '#1E293B',
+                  outline: 'none',
+                  transition: 'border-color 150ms ease',
+                  marginBottom: '16px',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = '#4F46E5' }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = '#E2E8F0' }}
+              />
 
               {state === 'error' && (
                 <p style={{
@@ -264,28 +253,32 @@ export default function AuthPage() {
 
               <button
                 type="submit"
-                disabled={state === 'loading' || !email.trim() || (mode === 'password' && !password.trim())}
+                disabled={!canSubmit}
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: '#4F46E5',
-                  color: 'white',
+                  background: canSubmit ? '#4F46E5' : '#E2E8F0',
+                  color: canSubmit ? 'white' : '#94A3B8',
                   border: 'none',
                   borderRadius: '10px',
                   fontSize: '15px',
                   fontWeight: 500,
                   fontFamily: "'DM Sans', sans-serif",
-                  cursor: 'pointer',
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
                   transition: 'background 150ms ease',
                   outline: 'none',
                   opacity: state === 'loading' ? 0.7 : 1,
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#3730A3' }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#4F46E5' }}
+                onMouseEnter={(e) => {
+                  if (canSubmit) (e.currentTarget as HTMLButtonElement).style.background = '#3730A3'
+                }}
+                onMouseLeave={(e) => {
+                  if (canSubmit) (e.currentTarget as HTMLButtonElement).style.background = '#4F46E5'
+                }}
               >
                 {state === 'loading'
-                  ? 'Signing in...'
-                  : mode === 'magic' ? 'Send magic link →' : 'Sign in →'}
+                  ? (mode === 'signin' ? 'Signing in...' : 'Creating account...')
+                  : (mode === 'signin' ? 'Sign in →' : 'Create account →')}
               </button>
             </form>
           </div>
