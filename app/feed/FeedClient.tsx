@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
-import DailyArticleCard from './DailyArticleCard'
-import StreakBadge from './StreakBadge'
+import ArticleCard from './ArticleCard'
+import QuizCard from './QuizCard'
+import KeyInsightCard from './KeyInsightCard'
+
+// --- TYPES ---
 
 type Article = {
   id: string
@@ -12,10 +15,62 @@ type Article = {
   url: string
   source: string
   published_at: string
-  summary: string
+  summary: string | null
+  summary_short: string | null
   topics: string[]
   reading_time_minutes: number
+  category: string | null
+  difficulty: number | null
+  hooks: string[] | null
+  key_insight: string | null
+  quiz_q1?: string | null
+  quiz_a1?: string | null
+  quiz_q2?: string | null
+  quiz_a2?: string | null
 }
+
+type ProgressRow = {
+  id: string
+  position: number
+  read_gate_passed: boolean
+  time_on_article_seconds: number
+  completed: boolean
+  completed_at: string | null
+  articles: Article
+}
+
+type PathFeedData = {
+  viewType: 'path'
+  archetypeDisplay: string
+  archetypeTagline: string
+  totalInPath: number
+  completedCount: number
+  current: ProgressRow | null
+  next: ProgressRow | null
+  completed: ProgressRow[]
+  quizReady: boolean
+  quizArticleIds: string[]
+}
+
+type ScannerFeedData = {
+  viewType: 'scanner'
+  archetypeDisplay: string
+  archetypeTagline: string
+  articles: Article[]
+}
+
+type FeedData = PathFeedData | ScannerFeedData
+
+type QuizResult = {
+  articleIds: string[]
+  correct: number
+  total: number
+  articles: { id: string; title: string; key_insight: string | null }[]
+}
+
+type FeedPhase = 'loading' | 'feed' | 'quiz' | 'insights'
+
+// --- HELPERS ---
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
@@ -27,26 +82,10 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(days / 30)}mo ago`
 }
 
-function TopicPill({ topic }: { topic: string }) {
-  return (
-    <span style={{
-      padding: '3px 10px',
-      background: '#EEF2FF',
-      color: '#4F46E5',
-      borderRadius: '99px',
-      fontSize: '11px',
-      fontWeight: 500,
-      fontFamily: "'DM Sans', sans-serif",
-      whiteSpace: 'nowrap',
-    }}>
-      {topic}
-    </span>
-  )
-}
+// --- SCANNER ARTICLE CARD ---
 
-function ArticleCard({ article }: { article: Article }) {
+function ScannerCard({ article }: { article: Article }) {
   const [hovered, setHovered] = useState(false)
-
   return (
     <a
       href={article.url}
@@ -61,17 +100,25 @@ function ArticleCard({ article }: { article: Article }) {
         borderBottom: '1px solid #F1F5F9',
         textDecoration: 'none',
         transition: 'background 150ms ease',
-        cursor: 'pointer',
       }}
     >
-      {/* Topics row */}
-      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
-        {(article.topics || []).slice(0, 2).map((t) => (
-          <TopicPill key={t} topic={t} />
-        ))}
-      </div>
-
-      {/* Title */}
+      {article.topics?.length > 0 && (
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+          {article.topics.slice(0, 2).map((t) => (
+            <span key={t} style={{
+              padding: '3px 10px',
+              background: '#EEF2FF',
+              color: '#4F46E5',
+              borderRadius: '99px',
+              fontSize: '11px',
+              fontWeight: 500,
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+              {t}
+            </span>
+          ))}
+        </div>
+      )}
       <p style={{
         fontFamily: "'DM Sans', sans-serif",
         fontSize: '15px',
@@ -83,15 +130,13 @@ function ArticleCard({ article }: { article: Article }) {
       }}>
         {article.title}
       </p>
-
-      {/* Summary */}
       {article.summary && (
         <p style={{
           fontFamily: "'DM Sans', sans-serif",
           fontSize: '13px',
           color: '#64748B',
           lineHeight: 1.5,
-          marginBottom: '10px',
+          marginBottom: '8px',
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
@@ -100,99 +145,235 @@ function ArticleCard({ article }: { article: Article }) {
           {article.summary}
         </p>
       )}
-
-      {/* Meta row */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: '12px',
-        color: '#94A3B8',
-      }}>
+      <div style={{ fontSize: '12px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif", display: 'flex', gap: '8px' }}>
         <span style={{ fontWeight: 500, color: '#64748B' }}>{article.source}</span>
         <span>·</span>
         <span>{timeAgo(article.published_at)}</span>
         <span>·</span>
-        <span>{article.reading_time_minutes} min read</span>
+        <span>{article.reading_time_minutes} min</span>
       </div>
     </a>
   )
 }
 
-function SkeletonCard() {
+// --- LOCKED NEXT CARD ---
+
+function LockedCard({ row, totalInPath }: { row: ProgressRow; totalInPath: number }) {
   return (
     <div style={{
+      background: '#FAFAFA',
+      border: '1px solid #E2E8F0',
+      borderRadius: '16px',
       padding: '20px',
-      borderBottom: '1px solid #F1F5F9',
-      background: 'white',
+      marginBottom: '16px',
+      position: 'relative',
+      overflow: 'hidden',
     }}>
-      <div style={{ width: '80px', height: '20px', background: '#F1F5F9', borderRadius: '99px', marginBottom: '10px' }} />
-      <div style={{ width: '90%', height: '16px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '8px' }} />
-      <div style={{ width: '70%', height: '16px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '12px' }} />
-      <div style={{ width: '40%', height: '12px', background: '#F8FAFC', borderRadius: '4px' }} />
+      {/* Blur overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        backdropFilter: 'blur(4px)',
+        background: 'rgba(248,250,252,0.6)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        zIndex: 2,
+      }}>
+        <span style={{ fontSize: '24px' }}>🔒</span>
+        <p style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '13px',
+          fontWeight: 500,
+          color: '#64748B',
+          textAlign: 'center',
+        }}>
+          Complete Article {row.position - 1} to unlock
+        </p>
+      </div>
+
+      {/* Background content (blurred) */}
+      <div style={{ opacity: 0.3, pointerEvents: 'none' }}>
+        <p style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '12px',
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: '#4F46E5',
+          marginBottom: '10px',
+        }}>
+          Article {row.position} of {totalInPath}
+        </p>
+        <p style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: '17px',
+          fontWeight: 600,
+          color: '#1E293B',
+          lineHeight: 1.4,
+        }}>
+          {row.articles.title}
+        </p>
+      </div>
     </div>
   )
 }
 
-export default function FeedClient() {
-  const [articles, setArticles] = useState<Article[]>([])
-  const [loading, setLoading] = useState(true)
-  const [syncing, setSyncing] = useState(false)
-  const [userTopics, setUserTopics] = useState<string[]>([])
-  const [activeFilter, setActiveFilter] = useState('All')
-  const [error, setError] = useState('')
-  const [userEmail, setUserEmail] = useState('')
-  const initialLoadDone = useRef(false)
+// --- COMPLETED STACK ---
 
-  const fetchArticles = useCallback(async (topics: string[], filter: string) => {
-    setLoading(true)
+function CompletedStack({ rows }: { rows: ProgressRow[] }) {
+  if (rows.length === 0) return null
+  return (
+    <div style={{ marginTop: '24px' }}>
+      <p style={{
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: '12px',
+        fontWeight: 600,
+        letterSpacing: '0.08em',
+        textTransform: 'uppercase',
+        color: '#94A3B8',
+        marginBottom: '12px',
+      }}>
+        Completed
+      </p>
+      <div style={{
+        background: 'white',
+        border: '1px solid #E2E8F0',
+        borderRadius: '14px',
+        overflow: 'hidden',
+      }}>
+        {rows.map((row) => (
+          <a
+            key={row.id}
+            href={row.articles.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              padding: '14px 16px',
+              borderBottom: '1px solid #F1F5F9',
+              textDecoration: 'none',
+            }}
+          >
+            <div style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              background: '#F0FDF4',
+              border: '1.5px solid #86EFAC',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <p style={{
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: '14px',
+                fontWeight: 500,
+                color: '#475569',
+                lineHeight: 1.3,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {row.articles.title}
+              </p>
+              <p style={{ fontSize: '11px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+                Article {row.position}
+              </p>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// --- PROGRESS BAR ---
+
+function PathProgress({ completed, total }: { completed: number; total: number }) {
+  const pct = total > 0 ? (completed / total) * 100 : 0
+  return (
+    <div style={{ marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 500, color: '#475569' }}>
+          Your path
+        </span>
+        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#94A3B8' }}>
+          {completed} / {total}
+        </span>
+      </div>
+      <div style={{ height: '6px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
+        <div style={{
+          height: '100%',
+          width: `${pct}%`,
+          background: pct >= 100 ? '#10B981' : '#4F46E5',
+          borderRadius: '99px',
+          transition: 'width 600ms ease',
+          minWidth: completed > 0 ? '8px' : '0',
+        }} />
+      </div>
+    </div>
+  )
+}
+
+// --- SKELETON ---
+
+function Skeleton() {
+  return (
+    <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ width: '120px', height: '12px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '12px' }} />
+      <div style={{ width: '90%', height: '18px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '8px' }} />
+      <div style={{ width: '70%', height: '18px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '14px' }} />
+      <div style={{ width: '100%', height: '44px', background: '#F1F5F9', borderRadius: '10px' }} />
+    </div>
+  )
+}
+
+// --- MAIN COMPONENT ---
+
+export default function FeedClient() {
+  const [feedData, setFeedData] = useState<FeedData | null>(null)
+  const [phase, setPhase] = useState<FeedPhase>('loading')
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null)
+  const [userEmail, setUserEmail] = useState('')
+  const [error, setError] = useState('')
+
+  const loadFeed = useCallback(async () => {
+    setPhase('loading')
     setError('')
     try {
-      const params = new URLSearchParams()
-      if (topics.length > 0) params.set('topics', topics.join(','))
-      if (filter) params.set('filter', filter)
-
-      const res = await fetch(`/api/articles?${params.toString()}`)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const res = await fetch('/api/feed')
+      if (res.status === 401) {
+        window.location.href = '/auth'
+        return
+      }
+      if (!res.ok) throw new Error('Failed to load feed')
       const data = await res.json()
-      setArticles(data)
-    } catch (err) {
-      setError('Could not load articles. Check your Supabase connection.')
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const syncArticles = useCallback(async () => {
-    // Only sync once per hour
-    const lastSync = localStorage.getItem('pm_last_sync')
-    const oneHour = 60 * 60 * 1000
-    if (lastSync && Date.now() - parseInt(lastSync) < oneHour) return
-
-    setSyncing(true)
-    try {
-      await fetch('/api/sync-articles', {
-        headers: { 'x-sync-secret': 'pm-companion-sync' }
-      })
-      localStorage.setItem('pm_last_sync', Date.now().toString())
-    } catch (err) {
-      console.error('Sync failed:', err)
-    } finally {
-      setSyncing(false)
+      setFeedData(data)
+      setPhase('feed')
+    } catch {
+      setError('Could not load your feed. Please refresh.')
+      setPhase('feed')
     }
   }, [])
 
   useEffect(() => {
-    const stored = localStorage.getItem('pm_topics')
-    let topics: string[] = stored ? JSON.parse(stored) : []
-
+    // Get user email + link profile
     const supabaseClient = createClient()
     supabaseClient.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { window.location.href = '/auth'; return }
       if (user?.email) setUserEmail(user.email)
 
-      // Link onboarding profile to auth user
       const sessionId = localStorage.getItem('pm_session_id')
       if (sessionId) {
         fetch('/api/link-profile', {
@@ -202,40 +383,39 @@ export default function FeedClient() {
         }).catch(() => {})
       }
 
-      // If no topics in localStorage, fetch from profile (cross-device support)
-      if (topics.length === 0 && user) {
-        try {
-          const res = await fetch('/api/user-profile')
-          const profile = await res.json()
-          if (profile?.topics?.length > 0) {
-            topics = profile.topics
-            localStorage.setItem('pm_topics', JSON.stringify(topics))
-          }
-        } catch {}
-      }
-
-      setUserTopics(topics)
-      syncArticles().then(() => {
-        fetchArticles(topics, 'All')
-        initialLoadDone.current = true
-      })
+      await loadFeed()
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [syncArticles, fetchArticles])
+  }, [loadFeed])
 
-  useEffect(() => {
-    if (!initialLoadDone.current) return  // skip — first useEffect handles initial load
-    fetchArticles(userTopics, activeFilter)
-  }, [activeFilter, fetchArticles, userTopics])
+  function handleGatePassed() {
+    // Re-check if quiz should fire by refreshing feed
+    fetch('/api/feed')
+      .then((r) => r.json())
+      .then((data: FeedData) => {
+        setFeedData(data)
+        if (data.viewType === 'path' && data.quizReady) {
+          setPhase('quiz')
+        }
+      })
+      .catch(() => {})
+  }
 
-  const filterTabs = ['All', ...userTopics]
+  function handleQuizComplete(result: QuizResult) {
+    setQuizResult(result)
+    setPhase('insights')
+  }
+
+  function handleInsightsDone() {
+    setQuizResult(null)
+    loadFeed()
+  }
+
+  const isPath = feedData?.viewType === 'path'
+  const pathData = isPath ? (feedData as PathFeedData) : null
+  const scannerData = !isPath ? (feedData as ScannerFeedData) : null
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#F8FAFC',
-      fontFamily: "'DM Sans', sans-serif",
-    }}>
+    <div style={{ minHeight: '100vh', background: '#F8FAFC', fontFamily: "'DM Sans', sans-serif" }}>
       {/* Header */}
       <header style={{
         background: 'white',
@@ -244,160 +424,201 @@ export default function FeedClient() {
         top: 0,
         zIndex: 10,
       }}>
-        <div style={{
-          maxWidth: '640px',
-          margin: '0 auto',
-          padding: '0 20px',
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            height: '52px',
-          }}>
-            <span style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontSize: '18px',
-              color: '#1E293B',
-            }}>
-              PM Companion
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {syncing && (
-                <span style={{ fontSize: '12px', color: '#94A3B8' }}>
-                  Syncing...
+        <div style={{ maxWidth: '640px', margin: '0 auto', padding: '0 20px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '18px', color: '#1E293B' }}>
+            PM Dojo
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {userEmail && (
+              <>
+                <Link href="/dashboard" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#64748B', textDecoration: 'none' }}>
+                  Dashboard
+                </Link>
+                <span style={{ fontSize: '13px', color: '#94A3B8' }}>
+                  {userEmail.split('@')[0]}
                 </span>
-              )}
-              {userEmail && (
-                <>
-                  <Link href="/dashboard" style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: '13px',
-                    color: '#64748B',
-                    textDecoration: 'none',
-                    marginRight: '4px',
-                  }}>
-                    Dashboard
-                  </Link>
-                  <span style={{ fontSize: '13px', color: '#94A3B8' }}>
-                    {userEmail.split('@')[0]}
-                  </span>
-                  <button
-                    onClick={async () => {
-                      const supabaseClient = createClient()
-                      await supabaseClient.auth.signOut()
-                      window.location.href = '/auth'
-                    }}
-                    style={{
-                      background: 'none',
-                      border: '1px solid #E2E8F0',
-                      borderRadius: '8px',
-                      padding: '5px 12px',
-                      fontSize: '12px',
-                      color: '#64748B',
-                      cursor: 'pointer',
-                      fontFamily: "'DM Sans', sans-serif",
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Filter tabs */}
-          {filterTabs.length > 1 && (
-            <div style={{
-              display: 'flex',
-              gap: '4px',
-              overflowX: 'auto',
-              paddingBottom: '12px',
-              scrollbarWidth: 'none',
-            }}>
-              {filterTabs.map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveFilter(tab)}
+                  onClick={async () => {
+                    const supabaseClient = createClient()
+                    await supabaseClient.auth.signOut()
+                    window.location.href = '/auth'
+                  }}
                   style={{
-                    padding: '6px 14px',
-                    borderRadius: '99px',
-                    border: `1.5px solid ${activeFilter === tab ? '#4F46E5' : '#E2E8F0'}`,
-                    background: activeFilter === tab ? '#4F46E5' : 'white',
-                    color: activeFilter === tab ? 'white' : '#64748B',
-                    fontSize: '13px',
-                    fontWeight: activeFilter === tab ? 500 : 400,
-                    fontFamily: "'DM Sans', sans-serif",
+                    background: 'none',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '8px',
+                    padding: '5px 12px',
+                    fontSize: '12px',
+                    color: '#64748B',
                     cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                    outline: 'none',
-                    transition: 'all 150ms ease',
+                    fontFamily: "'DM Sans', sans-serif",
                   }}
                 >
-                  {tab}
+                  Sign out
                 </button>
-              ))}
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Daily article */}
-      <DailyArticleCard />
+      <main style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px 80px' }}>
 
-      {/* Streak */}
-      <StreakBadge />
-
-      {/* Article list */}
-      <main
-        style={{ maxWidth: '640px', margin: '0 auto', background: 'white' }}
-        aria-busy={loading}
-        aria-label="Article feed"
-      >
         {error && (
-          <div style={{
-            padding: '20px',
-            color: '#EF4444',
-            fontSize: '14px',
-            textAlign: 'center',
-          }} role="alert">
+          <div style={{ padding: '20px', color: '#EF4444', fontSize: '14px', textAlign: 'center' }} role="alert">
             {error}
           </div>
         )}
 
-        {loading && !error && (
+        {phase === 'loading' && (
           <>
-            {[1,2,3,4,5].map((i) => <SkeletonCard key={i} />)}
+            <Skeleton />
+            <Skeleton />
           </>
         )}
 
-        {!loading && !error && articles.length === 0 && (
-          <div style={{
-            padding: '60px 20px',
-            textAlign: 'center',
-            color: '#94A3B8',
-            fontSize: '14px',
-          }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-            No articles found. Try syncing or changing your filter.
-          </div>
+        {/* QUIZ PHASE */}
+        {phase === 'quiz' && pathData && (
+          <QuizCard
+            articleIds={pathData.quizArticleIds}
+            onComplete={handleQuizComplete}
+          />
         )}
 
-        {!loading && articles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
+        {/* INSIGHTS PHASE */}
+        {phase === 'insights' && quizResult && (
+          <KeyInsightCard
+            articles={quizResult.articles}
+            onDone={handleInsightsDone}
+          />
+        )}
 
-        {!loading && articles.length > 0 && (
-          <div style={{
-            padding: '24px',
-            textAlign: 'center',
-            color: '#94A3B8',
-            fontSize: '13px',
-            borderTop: '1px solid #F1F5F9',
-          }}>
-            {articles.length} articles · filtered by your topics
-          </div>
+        {/* FEED PHASE */}
+        {phase === 'feed' && feedData && (
+          <>
+            {/* Archetype identity header */}
+            {feedData.archetypeDisplay && (
+              <div style={{ marginBottom: '24px' }}>
+                <h1 style={{
+                  fontFamily: "'Instrument Serif', serif",
+                  fontSize: '22px',
+                  fontWeight: 400,
+                  color: '#1E293B',
+                  marginBottom: '4px',
+                }}>
+                  {feedData.archetypeDisplay}
+                </h1>
+                <p style={{ fontSize: '14px', color: '#94A3B8' }}>
+                  {feedData.archetypeTagline}
+                </p>
+              </div>
+            )}
+
+            {/* PATH VIEW */}
+            {pathData && (
+              <>
+                <PathProgress completed={pathData.completedCount} total={pathData.totalInPath} />
+
+                {pathData.quizReady && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                    borderRadius: '14px',
+                    padding: '16px 20px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setPhase('quiz')}
+                  >
+                    <div>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: 'white', marginBottom: '2px' }}>
+                        ⚡ Quiz ready
+                      </p>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+                        Test what you&apos;ve learned
+                      </p>
+                    </div>
+                    <span style={{ color: 'white', fontSize: '20px' }}>→</span>
+                  </div>
+                )}
+
+                {pathData.current && (
+                  <ArticleCard
+                    row={pathData.current}
+                    totalInPath={pathData.totalInPath}
+                    onGatePassed={handleGatePassed}
+                  />
+                )}
+
+                {pathData.next && !pathData.current?.read_gate_passed && (
+                  <LockedCard row={pathData.next} totalInPath={pathData.totalInPath} />
+                )}
+
+                {pathData.next && pathData.current?.read_gate_passed && (
+                  <ArticleCard
+                    row={pathData.next}
+                    totalInPath={pathData.totalInPath}
+                    onGatePassed={handleGatePassed}
+                  />
+                )}
+
+                {pathData.current === null && pathData.completedCount === pathData.totalInPath && pathData.totalInPath > 0 && (
+                  <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
+                    <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: '24px', fontWeight: 400, color: '#1E293B', marginBottom: '8px' }}>
+                      Path complete!
+                    </h2>
+                    <p style={{ fontSize: '14px', color: '#64748B', fontFamily: "'DM Sans', sans-serif" }}>
+                      You&apos;ve read all 10 articles. Check your dashboard for your PM Dojo score.
+                    </p>
+                    <Link href="/dashboard" style={{
+                      display: 'inline-block',
+                      marginTop: '20px',
+                      padding: '12px 24px',
+                      background: '#4F46E5',
+                      color: 'white',
+                      borderRadius: '10px',
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      textDecoration: 'none',
+                    }}>
+                      View dashboard →
+                    </Link>
+                  </div>
+                )}
+
+                {pathData.current === null && pathData.totalInPath === 0 && (
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94A3B8' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px' }}>
+                      Your path is being built. Check back shortly.
+                    </p>
+                  </div>
+                )}
+
+                <CompletedStack rows={pathData.completed} />
+              </>
+            )}
+
+            {/* SCANNER VIEW */}
+            {scannerData && (
+              <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden' }}>
+                {scannerData.articles.length === 0 ? (
+                  <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8' }}>
+                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px' }}>No articles yet. Check back soon.</p>
+                  </div>
+                ) : (
+                  scannerData.articles.map((article) => (
+                    <ScannerCard key={article.id} article={article} />
+                  ))
+                )}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

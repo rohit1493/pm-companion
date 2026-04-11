@@ -1,0 +1,92 @@
+import { NextResponse, type NextRequest } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+const READ_GATE_SECONDS = 30
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+export async function POST(request: NextRequest) {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { article_id, seconds_to_add } = await request.json()
+  if (!article_id || typeof seconds_to_add !== 'number') {
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  }
+
+  // Get current progress row
+  const { data: row } = await supabaseAdmin
+    .from('user_progress')
+    .select('id, time_on_article_seconds, read_gate_passed')
+    .eq('user_id', user.id)
+    .eq('article_id', article_id)
+    .single()
+
+  if (!row) {
+    return NextResponse.json({ error: 'Article not in your path' }, { status: 404 })
+  }
+
+  const newTotal = (row.time_on_article_seconds || 0) + Math.max(0, seconds_to_add)
+  const passed = newTotal >= READ_GATE_SECONDS
+
+  // Update time and gate status
+  await supabaseAdmin
+    .from('user_progress')
+    .update({
+      time_on_article_seconds: newTotal,
+      ...(passed && !row.read_gate_passed ? { read_gate_passed: true } : {}),
+    })
+    .eq('id', row.id)
+
+  // Check if quiz should fire
+  const { data: gatedRows } = await supabaseAdmin
+    .from('user_progress')
+    .select('article_id')
+    .eq('user_id', user.id)
+    .eq('read_gate_passed', true)
+    .eq('completed', false)
+
+  const { data: lastQuiz } = await supabaseAdmin
+    .from('quiz_sessions')
+    .select('articles_covered')
+    .eq('user_id', user.id)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const coveredIds = new Set<string>(
+    lastQuiz ? ((lastQuiz.articles_covered as string[]) || []) : []
+  )
+
+  const uncoveredGated = (gatedRows || []).filter(
+    (r) => !coveredIds.has(r.article_id)
+  )
+  const quizReady = uncoveredGated.length >= 2
+
+  return NextResponse.json({
+    passed,
+    total_seconds: newTotal,
+    quiz_ready: quizReady,
+  })
+}
