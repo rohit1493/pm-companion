@@ -38,8 +38,6 @@ async function isUrlAlive(url: string): Promise<boolean> {
   }
 }
 
-let lastEnrichErr = ''
-
 async function enrichArticle(article: {
   id: string
   title: string
@@ -85,8 +83,7 @@ difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and
     const text = msg.content[0].type === 'text' ? msg.content[0].text : ''
     const json = JSON.parse(text.trim())
     return json
-  } catch (e) {
-    lastEnrichErr = e instanceof Error ? e.message : String(e)
+  } catch {
     return null
   }
 }
@@ -155,10 +152,9 @@ export async function GET(request: NextRequest) {
     .limit(20)
 
   let enriched = 0
-  let enrichError = ''
   for (const article of (toEnrich || [])) {
     const data = await enrichArticle(article)
-    if (!data) { if (!enrichError) enrichError = 'enrichArticle returned null for: ' + article.id; continue }
+    if (!data) continue
 
     await supabaseAdmin
       .from('articles')
@@ -179,5 +175,5 @@ export async function GET(request: NextRequest) {
   }
 
   const total = results.reduce((sum, r) => sum + r.inserted, 0)
-  return NextResponse.json({ synced: total, enriched, toEnrichCount: (toEnrich || []).length, enrichError: lastEnrichErr, sources: results })
+  return NextResponse.json({ synced: total, enriched, sources: results })
 }
