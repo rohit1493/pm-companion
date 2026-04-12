@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   // Fetch all active path users with their email + streak data
   const { data: profiles } = await supabaseAdmin
     .from('user_profiles')
-    .select('user_id, archetype, archetype_display, streak, streak_last_updated, last_active_at')
+    .select('user_id, archetype, archetype_display, streak, streak_last_updated')
     .not('archetype', 'is', null)
     .neq('archetype', 'scanner')
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const email = emailMap.get(profile.user_id)
     if (!email) continue
 
-    const lastActive = profile.last_active_at ? new Date(profile.last_active_at) : null
+    const lastActive = profile.streak_last_updated ? new Date(profile.streak_last_updated) : null
     const streak = profile.streak || 0
     const displayName = profile.archetype_display || 'PM'
 

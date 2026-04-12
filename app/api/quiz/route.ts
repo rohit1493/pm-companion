@@ -146,7 +146,6 @@ export async function POST(request: NextRequest) {
   await supabaseAdmin
     .from('user_profiles')
     .update({
-      last_active_at: now.toISOString(),
       streak: newStreak,
       streak_last_updated: now.toISOString(),
     })

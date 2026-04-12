@@ -31,17 +31,25 @@ export async function GET() {
   // Check if user has an archetype (path user) — use user_profiles.streak if so
   const { data: profile } = await supabaseAdmin
     .from('user_profiles')
-    .select('archetype, streak, last_active_at')
+    .select('archetype, streak, streak_last_updated')
     .eq('user_id', user.id)
+    .limit(1)
     .maybeSingle()
 
   if (profile?.archetype) {
     const today = new Date().toISOString().split('T')[0]
-    const lastActive = profile.last_active_at ? profile.last_active_at.split('T')[0] : null
+    const lastUpdated = profile.streak_last_updated ? profile.streak_last_updated.split('T')[0] : null
+
+    const { count: completedCount } = await supabaseAdmin
+      .from('user_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('completed', true)
+
     return NextResponse.json({
       streak: profile.streak || 0,
-      readToday: lastActive === today,
-      totalRead: profile.streak || 0,
+      readToday: lastUpdated === today,
+      totalRead: completedCount || 0,
     })
   }
 
