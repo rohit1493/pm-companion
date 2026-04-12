@@ -40,3 +40,22 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Global responsive helpers ── */
+img { max-width: 100%; height: auto; }
+
+/* Stat cards: smaller number on mobile */
+@media (max-width: 480px) {
+  /* StatCard value font size */
+  .stat-value { font-size: 22px !important; }
+  /* Onboarding question title */
+  .question-title { font-size: 22px !important; }
+  /* Archetype reveal title */
+  .reveal-title { font-size: 28px !important; }
+}
+
+/* Touch targets: all interactive elements min 44px tall */
+button, a[href], [role="button"] {
+  min-height: 44px;
+  touch-action: manipulation;
+}

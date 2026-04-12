@@ -49,7 +49,7 @@ function StatCard({ value, label, accent }: { value: string | number; label: str
       flex: 1,
       minWidth: '0',
     }}>
-      <p style={{
+      <p className="stat-value" style={{
         fontFamily: "'Manrope', sans-serif",
         fontSize: '32px',
         fontWeight: 400,

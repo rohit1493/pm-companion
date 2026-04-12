@@ -438,15 +438,12 @@ export default function FeedClient() {
           <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', color: '#f6fafe' }}>
             PM Dojo
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {userEmail && (
               <>
-                <Link href="/dashboard" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none' }}>
+                <Link href="/dashboard" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none', whiteSpace: 'nowrap' }}>
                   Dashboard
                 </Link>
-                <span style={{ fontSize: '13px', color: '#6b7685' }}>
-                  {userEmail.split('@')[0]}
-                </span>
                 <button
                   onClick={async () => {
                     const supabaseClient = createClient()
@@ -462,6 +459,7 @@ export default function FeedClient() {
                     color: '#8b96a5',
                     cursor: 'pointer',
                     fontFamily: "'Inter', sans-serif",
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   Sign out

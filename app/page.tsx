@@ -77,14 +77,12 @@ export default function Home() {
           not just consume more.
         </p>
 
-        <div style={{
+        <div className="hero-cta-row" style={{
           marginTop: '40px',
           display: 'flex',
-          flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: '16px',
-          flexWrap: 'wrap',
         }}>
           <Link
             href="/select"
@@ -119,10 +117,9 @@ export default function Home() {
         </div>
 
         {/* Feature cards */}
-        <div style={{
+        <div className="feature-grid" style={{
           marginTop: '64px',
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: '12px',
           width: '100%',
           maxWidth: '640px',
@@ -177,6 +174,13 @@ export default function Home() {
           50% { transform: translateY(-12px); opacity: 0.6; }
         }
         .ember { position: absolute; border-radius: 50%; animation: emberFloat 3s ease-in-out infinite; pointer-events: none; }
+        .feature-grid { grid-template-columns: repeat(3, 1fr); }
+        .hero-cta-row { flex-direction: row; }
+        @media (max-width: 600px) {
+          .feature-grid { grid-template-columns: 1fr; }
+          .hero-cta-row { flex-direction: column; align-items: center; width: 100%; }
+          .hero-cta-row a { width: 100%; text-align: center; }
+        }
       `}</style>
       <div className="ember" style={{ left: '12%', top: '28%', width: 6, height: 6, background: '#ff6b35', boxShadow: '0 0 18px 4px rgba(255,107,53,0.6)', animationDelay: '0s' }} />
       <div className="ember" style={{ left: '78%', top: '22%', width: 4, height: 4, background: '#ffb690', boxShadow: '0 0 14px 3px rgba(255,182,144,0.5)', animationDelay: '1.2s' }} />
