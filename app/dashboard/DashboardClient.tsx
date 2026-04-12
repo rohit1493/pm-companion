@@ -142,9 +142,7 @@ export default function DashboardClient() {
               <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'opacity 200ms ease', opacity: menuOpen ? 0 : 1 }} />
               <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none' }} />
             </button>
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
-              PM Dojo
-            </span>
+            <span className="nav-logo">PM Dojo</span>
           </div>
 
           {/* Centre — Tab nav, absolutely centered */}
@@ -258,8 +256,16 @@ export default function DashboardClient() {
             transition: background 150ms ease;
           }
           .menu-signout-btn:hover { background: #1a2332; }
-          @media (max-width: 480px) {
-            .dash-nav-tab { padding: 5px 10px; font-size: 12px; }
+          .nav-logo {
+            font-family: 'Manrope', sans-serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: #f6fafe;
+            white-space: nowrap;
+          }
+          @media (max-width: 540px) {
+            .nav-logo { display: none; }
+            .dash-nav-tab { padding: 6px 14px; font-size: 13px; }
           }
         `}</style>
       </header>

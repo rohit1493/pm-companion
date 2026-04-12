@@ -468,9 +468,7 @@ export default function FeedClient() {
               <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'opacity 200ms ease', opacity: menuOpen ? 0 : 1 }} />
               <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none' }} />
             </button>
-            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
-              PM Dojo
-            </span>
+            <span className="nav-logo">PM Dojo</span>
           </div>
 
           {/* Centre — Tab nav, absolutely centered */}
@@ -483,7 +481,7 @@ export default function FeedClient() {
             background: '#0b0f14',
             border: '1px solid #2a3340',
             borderRadius: '999px',
-            padding: '3px',
+            padding: '4px',
             gap: '2px',
           }}>
             <span className="nav-tab nav-tab-active">Feed</span>
@@ -586,8 +584,16 @@ export default function FeedClient() {
             transition: background 150ms ease;
           }
           .menu-signout-btn:hover { background: #1a2332; }
-          @media (max-width: 480px) {
-            .nav-tab { padding: 5px 10px; font-size: 12px; }
+          .nav-logo {
+            font-family: 'Manrope', sans-serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: #f6fafe;
+            white-space: nowrap;
+          }
+          @media (max-width: 540px) {
+            .nav-logo { display: none; }
+            .nav-tab { padding: 6px 14px; font-size: 13px; }
           }
         `}</style>
       </header>
