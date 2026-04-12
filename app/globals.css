@@ -54,8 +54,9 @@ img { max-width: 100%; height: auto; }
   .reveal-title { font-size: 28px !important; }
 }
 
-/* Touch targets: all interactive elements min 44px tall */
-button, a[href], [role="button"] {
-  min-height: 44px;
-  touch-action: manipulation;
+/* Touch targets on mobile only */
+@media (max-width: 768px) {
+  button, a[href], [role="button"] {
+    touch-action: manipulation;
+  }
 }

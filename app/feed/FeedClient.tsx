@@ -459,14 +459,11 @@ export default function FeedClient() {
                 background: '#161e28',
                 border: '1px solid #2a3340',
                 borderRadius: '999px',
-                padding: '0 12px',
-                height: '30px',
-                lineHeight: '30px',
+                padding: '5px 12px',
                 maxWidth: '140px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                display: 'inline-block',
               }}>
                 {userEmail.split('@')[0]}
               </span>
@@ -477,7 +474,6 @@ export default function FeedClient() {
                 color: '#8b96a5',
                 textDecoration: 'none',
                 whiteSpace: 'nowrap',
-                lineHeight: '30px',
               }}>
                 Dashboard
               </Link>
@@ -492,16 +488,13 @@ export default function FeedClient() {
                   background: 'none',
                   border: '1px solid #2a3340',
                   borderRadius: '8px',
-                  height: '30px',
-                  padding: '0 14px',
+                  padding: '5px 12px',
                   fontSize: '12px',
                   color: '#8b96a5',
                   cursor: 'pointer',
                   fontFamily: "'Inter', sans-serif",
                   whiteSpace: 'nowrap',
-                  lineHeight: '1',
-                  display: 'flex',
-                  alignItems: 'center',
+                  minHeight: 'unset',
                 }}
               >
                 Sign out

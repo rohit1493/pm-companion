@@ -129,14 +129,11 @@ export default function DashboardClient() {
               background: '#161e28',
               border: '1px solid #2a3340',
               borderRadius: '999px',
-              padding: '0 12px',
-              height: '30px',
-              lineHeight: '30px',
+              padding: '5px 12px',
               maxWidth: '140px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              display: 'inline-block',
             }}>
               {userEmail.split('@')[0]}
             </span>
@@ -146,7 +143,6 @@ export default function DashboardClient() {
               color: '#8b96a5',
               textDecoration: 'none',
               whiteSpace: 'nowrap',
-              lineHeight: '30px',
             }}>
               Feed
             </Link>
@@ -160,16 +156,14 @@ export default function DashboardClient() {
                 background: 'none',
                 border: '1px solid #2a3340',
                 borderRadius: '8px',
-                height: '30px',
-                padding: '0 14px',
+                padding: '5px 12px',
                 fontSize: '12px',
                 color: '#8b96a5',
                 cursor: 'pointer',
                 fontFamily: "'Inter', sans-serif",
                 outline: 'none',
                 whiteSpace: 'nowrap',
-                display: 'flex',
-                alignItems: 'center',
+                minHeight: 'unset',
               }}
             >
               Sign out
