@@ -39,8 +39,32 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (existing) {
-    // Already linked — ensure user_progress rows exist if sequence is set
-    await ensureUserProgress(user.id, existing.sequence, existing.archetype)
+    // Already linked — check if session profile has a better (non-scanner) archetype
+    const { data: sessionProfile } = await supabaseAdmin
+      .from('user_profiles')
+      .select('archetype, archetype_display, archetype_tagline, sequence')
+      .eq('session_id', session_id)
+      .maybeSingle()
+
+    const betterArchetype = sessionProfile?.archetype && sessionProfile.archetype !== 'scanner'
+    const currentIsBad = !existing.archetype || existing.archetype === 'scanner'
+
+    if (betterArchetype && (currentIsBad || sessionProfile!.archetype !== existing.archetype)) {
+      // Update linked profile with correct archetype + rebuild sequence
+      await supabaseAdmin
+        .from('user_profiles')
+        .update({
+          archetype: sessionProfile!.archetype,
+          archetype_display: sessionProfile!.archetype_display,
+          archetype_tagline: sessionProfile!.archetype_tagline,
+          sequence: sessionProfile!.sequence,
+        })
+        .eq('user_id', user.id)
+
+      await ensureUserProgress(user.id, sessionProfile!.sequence, sessionProfile!.archetype)
+    } else {
+      await ensureUserProgress(user.id, existing.sequence, existing.archetype)
+    }
     return NextResponse.json({ linked: true, already: true })
   }
 

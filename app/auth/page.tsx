@@ -55,7 +55,7 @@ export default function AuthPage() {
           setState('error')
           setErrorMsg(signInError.message)
         } else {
-          router.push('/onboarding')
+          router.push('/feed')
         }
       }
     } else {

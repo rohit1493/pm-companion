@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { assignArchetype, type Archetype } from '@/lib/archetypes'
 import LoadingScreen from './LoadingScreen'
+import { createClient } from '@/lib/supabase-browser'
 
 // --- HELPERS ---
 
@@ -505,7 +506,20 @@ export default function OnboardingFlow() {
       localStorage.setItem('pm_archetype', archetype.key)
       localStorage.setItem('pm_goal', goal)
 
-      router.push('/auth')
+      // If user is already authenticated, link profile directly and go to feed
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await fetch('/api/link-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId }),
+        })
+        localStorage.removeItem('pm_session_id')
+        router.push('/feed')
+      } else {
+        router.push('/auth')
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Something went wrong.')
       setSubmitting(false)
