@@ -28,8 +28,8 @@ export default function KeyInsightCard({
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)',
-      border: '1px solid #3730A3',
+      background: 'linear-gradient(135deg, #1a1208 0%, #2d1a0e 100%)',
+      border: '1px solid rgba(255,107,53,0.3)',
       borderRadius: '16px',
       padding: '28px 24px',
       marginBottom: '16px',
@@ -40,20 +40,20 @@ export default function KeyInsightCard({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '18px' }}>💡</span>
           <span style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
             fontSize: '12px',
             fontWeight: 600,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            color: '#A5B4FC',
+            color: '#ff8c5a',
           }}>
             Key Insight
           </span>
         </div>
         <span style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '12px',
-          color: '#6366F1',
+          color: '#ff6b35',
         }}>
           {index + 1} / {withInsights.length}
         </span>
@@ -61,9 +61,9 @@ export default function KeyInsightCard({
 
       {/* Article title */}
       <p style={{
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '12px',
-        color: '#818CF8',
+        color: '#ffb89a',
         marginBottom: '10px',
         lineHeight: 1.4,
       }}>
@@ -72,7 +72,7 @@ export default function KeyInsightCard({
 
       {/* Insight */}
       <p style={{
-        fontFamily: "'Instrument Serif', serif",
+        fontFamily: "'Manrope', sans-serif",
         fontSize: '20px',
         fontWeight: 400,
         color: 'white',
@@ -90,7 +90,7 @@ export default function KeyInsightCard({
               width: i === index ? '20px' : '6px',
               height: '6px',
               borderRadius: '99px',
-              background: i === index ? '#A5B4FC' : '#3730A3',
+              background: i === index ? '#ff6b35' : '#2a3340',
               transition: 'width 200ms ease, background 200ms ease',
             }} />
           ))}
@@ -113,7 +113,7 @@ export default function KeyInsightCard({
           color: 'white',
           border: '1.5px solid rgba(255,255,255,0.2)',
           borderRadius: '10px',
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '15px',
           fontWeight: 500,
           cursor: 'pointer',

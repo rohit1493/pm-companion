@@ -52,7 +52,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
 
       {/* Headline */}
       <h2 style={{
-        fontFamily: "'Instrument Serif', serif",
+        fontFamily: "'Manrope', sans-serif",
         fontSize: 'clamp(20px, 5vw, 24px)',
         fontWeight: 400,
         color: 'var(--text-primary)',
@@ -67,7 +67,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       <p
         key={lineIdx}
         style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '14px',
           color: 'var(--text-secondary)',
           textAlign: 'center',

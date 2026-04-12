@@ -26,8 +26,8 @@ export default function UnlockAnimation({ onComplete }: { onComplete: () => void
       {phase === 'slideUp' && (
         <div style={{
           padding: '20px',
-          background: '#F0FDF4',
-          border: '1px solid #86EFAC',
+          background: 'rgba(74,222,128,0.08)',
+          border: '1px solid rgba(74,222,128,0.3)',
           borderRadius: '14px',
           marginBottom: '16px',
           opacity: exitVisible ? 1 : 0,
@@ -35,12 +35,12 @@ export default function UnlockAnimation({ onComplete }: { onComplete: () => void
           transition: 'opacity 280ms cubic-bezier(0.4,0,1,1), transform 280ms cubic-bezier(0.4,0,1,1)',
         }}>
           <span style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
             fontSize: '11px',
             fontWeight: 600,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: '#16A34A',
+            color: '#4ade80',
           }}>
             ✓ Article read
           </span>
@@ -54,16 +54,16 @@ export default function UnlockAnimation({ onComplete }: { onComplete: () => void
       {phase === 'dropIn' && (
         <div style={{
           padding: '20px',
-          background: 'white',
+          background: '#121821',
           border: '1.5px solid var(--indigo)',
           borderRadius: '14px',
-          boxShadow: '0 0 0 3px rgba(79,70,229,0.08)',
+          boxShadow: '0 0 0 3px rgba(255,107,53,0.08)',
           opacity: enterVisible ? 1 : 0,
           transform: enterVisible ? 'translateY(0)' : 'translateY(-16px)',
           transition: 'opacity 300ms ease, transform 300ms cubic-bezier(0.34,1.56,0.64,1)',
         }}>
           <p style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
             fontSize: '12px',
             fontWeight: 600,
             letterSpacing: '0.08em',

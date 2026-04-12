@@ -1,25 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --indigo: #4F46E5;
-  --indigo-light: #EEF2FF;
-  --indigo-dark: #3730A3;
-  --text-primary: #1E293B;
-  --text-secondary: #64748B;
-  --text-muted: #94A3B8;
-  --border: #E2E8F0;
-  --bg: #F8FAFC;
-  --white: #FFFFFF;
+  --accent: #ff6b35;
+  --accent-dark: #e05a28;
+  --accent-bg: rgba(255,107,53,0.12);
+  --text-primary: #f6fafe;
+  --text-secondary: #8b96a5;
+  --text-muted: #6b7685;
+  --border: #2a3340;
+  --border-subtle: #1e2a38;
+  --bg: #0b0f14;
+  --surface: #121821;
+  --surface-subtle: #161e28;
+  --surface-hover: #1a2332;
+  /* legacy compat */
+  --indigo: #ff6b35;
+  --indigo-dark: #e05a28;
+  --indigo-light: rgba(255,107,53,0.12);
+  --white: #121821;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   background-color: var(--bg);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;

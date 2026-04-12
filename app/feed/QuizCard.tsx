@@ -119,7 +119,7 @@ export default function QuizCard({
   if (loading) {
     return (
       <div style={containerStyle}>
-        <div style={{ textAlign: 'center', padding: '40px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
           Loading quiz...
         </div>
       </div>
@@ -208,7 +208,7 @@ export default function QuizCard({
                     flex: 1,
                     height: '3px',
                     borderRadius: '99px',
-                    background: i < idx ? '#4F46E5' : i === idx ? '#A5B4FC' : '#E2E8F0',
+                    background: i < idx ? '#ff6b35' : i === idx ? '#ffb89a' : '#2a3340',
                   }} />
                 ))}
               </div>
@@ -223,15 +223,15 @@ export default function QuizCard({
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {q.options.map((opt) => {
-                  let bg = 'white'
-                  let border = '1.5px solid #E2E8F0'
-                  let color = '#1E293B'
+                  let bg = '#161e28'
+                  let border = '1.5px solid #2a3340'
+                  let color = '#f6fafe'
 
                   if (quizState.phase === 'answer_correct' && opt === q.correct_answer) {
-                    bg = '#F0FDF4'; border = '1.5px solid #86EFAC'; color = '#16A34A'
+                    bg = 'rgba(74,222,128,0.1)'; border = '1.5px solid rgba(74,222,128,0.3)'; color = '#4ade80'
                   }
                   if (quizState.phase === 'answer_shown' && opt === q.correct_answer) {
-                    bg = '#F0FDF4'; border = '1.5px solid #86EFAC'; color = '#16A34A'
+                    bg = 'rgba(74,222,128,0.1)'; border = '1.5px solid rgba(74,222,128,0.3)'; color = '#4ade80'
                   }
 
                   return (
@@ -244,7 +244,7 @@ export default function QuizCard({
                         background: bg,
                         border,
                         borderRadius: '10px',
-                        fontFamily: "'DM Sans', sans-serif",
+                        fontFamily: "'Inter', sans-serif",
                         fontSize: '14px',
                         fontWeight: 500,
                         color,
@@ -255,14 +255,14 @@ export default function QuizCard({
                       }}
                       onMouseEnter={(e) => {
                         if (quizState.phase === 'question') {
-                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#A5B4FC'
-                          ;(e.currentTarget as HTMLButtonElement).style.background = '#FAFAFE'
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ff6b35'
+                          ;(e.currentTarget as HTMLButtonElement).style.background = '#1a2332'
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (quizState.phase === 'question') {
-                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#E2E8F0'
-                          ;(e.currentTarget as HTMLButtonElement).style.background = 'white'
+                          (e.currentTarget as HTMLButtonElement).style.borderColor = '#2a3340'
+                          ;(e.currentTarget as HTMLButtonElement).style.background = '#161e28'
                         }
                       }}
                     >
@@ -275,7 +275,7 @@ export default function QuizCard({
               {/* Feedback */}
               {quizState.phase === 'answer_correct' && (
                 <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#16A34A', fontFamily: "'DM Sans', sans-serif", marginBottom: '12px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#4ade80', fontFamily: "'Inter', sans-serif", marginBottom: '12px' }}>
                     ✓ Correct!
                   </p>
                   <button onClick={() => next(idx, correctCount)} style={primaryBtn}>
@@ -286,10 +286,10 @@ export default function QuizCard({
 
               {quizState.phase === 'answer_wrong' && (
                 <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#DC2626', fontFamily: "'DM Sans', sans-serif", marginBottom: '4px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: '#DC2626', fontFamily: "'Inter', sans-serif", marginBottom: '4px' }}>
                     Not quite.
                   </p>
-                  <p style={{ fontSize: '13px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif", marginBottom: '12px' }}>
+                  <p style={{ fontSize: '13px', color: '#6b7685', fontFamily: "'Inter', sans-serif", marginBottom: '12px' }}>
                     Try again?
                   </p>
                   <button
@@ -303,7 +303,7 @@ export default function QuizCard({
 
               {quizState.phase === 'answer_shown' && (
                 <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '13px', color: '#64748B', fontFamily: "'DM Sans', sans-serif", marginBottom: '12px' }}>
+                  <p style={{ fontSize: '13px', color: '#8b96a5', fontFamily: "'Inter', sans-serif", marginBottom: '12px' }}>
                     The correct answer is highlighted above.
                   </p>
                   <button onClick={() => next(idx, correctCount)} style={primaryBtn}>
@@ -335,7 +335,7 @@ export default function QuizCard({
             <div style={{
               fontSize: '22px',
               letterSpacing: '4px',
-              color: pct >= 0.75 ? '#F59E0B' : pct > 0.25 ? '#94A3B8' : '#CBD5E1',
+              color: pct >= 0.75 ? '#F59E0B' : pct > 0.25 ? '#6b7685' : '#2a3340',
               marginBottom: '12px',
             }}>
               {starDisplay}
@@ -347,7 +347,7 @@ export default function QuizCard({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <button
                   onClick={onReRead}
-                  style={{ ...primaryBtn, background: '#1E293B' }}
+                  style={{ ...primaryBtn, background: '#f6fafe', color: '#0b0f14' }}
                 >
                   Re-read the articles →
                 </button>
@@ -357,8 +357,8 @@ export default function QuizCard({
                   style={{
                     ...primaryBtn,
                     background: 'none',
-                    color: '#94A3B8',
-                    border: '1px solid #E2E8F0',
+                    color: '#6b7685',
+                    border: '1px solid #2a3340',
                     opacity: submitting ? 0.7 : 1,
                     fontSize: '13px',
                     padding: '12px 24px',
@@ -384,43 +384,43 @@ export default function QuizCard({
 }
 
 const containerStyle: React.CSSProperties = {
-  background: 'white',
-  border: '1px solid #E2E8F0',
+  background: '#121821',
+  border: '1px solid #2a3340',
   borderRadius: '16px',
   padding: '28px 24px',
   marginBottom: '16px',
 }
 
 const headingStyle: React.CSSProperties = {
-  fontFamily: "'Instrument Serif', serif",
+  fontFamily: "'Manrope', sans-serif",
   fontSize: '22px',
   fontWeight: 400,
-  color: '#1E293B',
+  color: '#f6fafe',
   marginBottom: '12px',
   lineHeight: 1.3,
 }
 
 const bodyStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', sans-serif",
+  fontFamily: "'Inter', sans-serif",
   fontSize: '14px',
-  color: '#64748B',
+  color: '#8b96a5',
   lineHeight: 1.5,
 }
 
 const mutedStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', sans-serif",
+  fontFamily: "'Inter', sans-serif",
   fontSize: '12px',
-  color: '#94A3B8',
+  color: '#6b7685',
 }
 
 const primaryBtn: React.CSSProperties = {
   display: 'inline-block',
   padding: '14px 28px',
-  background: '#4F46E5',
+  background: '#ff6b35',
   color: 'white',
   border: 'none',
   borderRadius: '10px',
-  fontFamily: "'DM Sans', sans-serif",
+  fontFamily: "'Inter', sans-serif",
   fontSize: '15px',
   fontWeight: 500,
   cursor: 'pointer',

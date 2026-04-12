@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'PM Companion — Your learning plan, not another feed',
+  title: 'PM Dojo — Your personalised PM learning path',
   description: 'Goal-anchored learning for product managers.',
 }
 

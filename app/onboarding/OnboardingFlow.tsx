@@ -37,20 +37,20 @@ function RadioCard({
         width: '100%',
         textAlign: 'left',
         padding: '18px 20px',
-        background: selected ? '#FAFAFE' : 'var(--white)',
+        background: selected ? '#1a2332' : 'var(--white)',
         border: `1.5px solid ${selected ? 'var(--indigo)' : 'var(--border)'}`,
         borderRadius: '12px',
         cursor: 'pointer',
         transition: 'all 200ms ease',
         outline: 'none',
-        boxShadow: selected ? '0 0 0 3px rgba(79,70,229,0.08)' : 'none',
+        boxShadow: selected ? '0 0 0 3px rgba(255,107,53,0.08)' : 'none',
         display: 'flex',
         alignItems: 'center',
         gap: '14px',
       }}
       onMouseEnter={(e) => {
         if (!selected) {
-          (e.currentTarget as HTMLButtonElement).style.borderColor = '#A5B4FC'
+          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ffb89a'
           ;(e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
         }
       }}
@@ -65,7 +65,7 @@ function RadioCard({
         width: '20px',
         height: '20px',
         borderRadius: '50%',
-        border: `2px solid ${selected ? 'var(--indigo)' : '#CBD5E1'}`,
+        border: `2px solid ${selected ? 'var(--indigo)' : '#2a3340'}`,
         background: selected ? 'var(--indigo)' : 'transparent',
         flexShrink: 0,
         display: 'flex',
@@ -77,7 +77,7 @@ function RadioCard({
       </div>
       <div>
         <div style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '15px',
           fontWeight: 500,
           color: selected ? 'var(--indigo)' : 'var(--text-primary)',
@@ -86,7 +86,7 @@ function RadioCard({
           {label}
         </div>
         <div style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
           color: 'var(--text-secondary)',
           marginTop: '3px',
@@ -117,9 +117,9 @@ function CheckCard({
         padding: '10px 18px',
         borderRadius: '10px',
         border: `1.5px solid ${selected ? 'var(--indigo)' : 'var(--border)'}`,
-        background: selected ? '#FAFAFE' : 'white',
+        background: selected ? '#1a2332' : '#121821',
         color: selected ? 'var(--indigo)' : 'var(--text-secondary)',
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '14px',
         fontWeight: selected ? 500 : 400,
         cursor: 'pointer',
@@ -160,7 +160,7 @@ function BackBtn({ onClick }: { onClick: () => void }) {
         border: 'none',
         cursor: 'pointer',
         color: 'var(--text-muted)',
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '14px',
         padding: '0',
         marginBottom: '24px',
@@ -179,7 +179,7 @@ function Question({ title, sub }: { title: string; sub?: string }) {
   return (
     <>
       <h1 style={{
-        fontFamily: "'Instrument Serif', serif",
+        fontFamily: "'Manrope', sans-serif",
         fontSize: 'clamp(24px, 6vw, 30px)',
         fontWeight: 400,
         color: 'var(--text-primary)',
@@ -190,7 +190,7 @@ function Question({ title, sub }: { title: string; sub?: string }) {
       </h1>
       {sub && (
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '14px',
           color: 'var(--text-muted)',
           marginBottom: '28px',
@@ -239,22 +239,22 @@ function ArchetypeReveal({
       </div>
 
       <p style={{
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '11px',
         fontWeight: 600,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',
-        color: '#94A3B8',
+        color: '#6b7685',
         marginBottom: '12px',
       }}>
         You are
       </p>
 
       <h1 style={{
-        fontFamily: "'Instrument Serif', serif",
+        fontFamily: "'Manrope', sans-serif",
         fontSize: 'clamp(28px, 7vw, 36px)',
         fontWeight: 400,
-        color: '#1E293B',
+        color: '#f6fafe',
         lineHeight: 1.2,
         marginBottom: '16px',
         letterSpacing: '-0.02em',
@@ -263,9 +263,9 @@ function ArchetypeReveal({
       </h1>
 
       <p style={{
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '15px',
-        color: '#64748B',
+        color: '#8b96a5',
         lineHeight: 1.6,
         marginBottom: '32px',
         maxWidth: '320px',
@@ -275,26 +275,26 @@ function ArchetypeReveal({
       </p>
 
       <div style={{
-        background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%)',
-        border: '1px solid #C7D2FE',
+        background: 'rgba(255,107,53,0.12)',
+        border: '1px solid rgba(255,107,53,0.3)',
         borderRadius: '14px',
         padding: '16px 20px',
         marginBottom: '32px',
         textAlign: 'left',
       }}>
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
           fontWeight: 600,
-          color: '#4F46E5',
+          color: '#ff6b35',
           marginBottom: '6px',
         }}>
           Your 10-article path is ready
         </p>
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
-          color: '#6366F1',
+          color: '#ff6b35',
           lineHeight: 1.5,
         }}>
           Curated for your archetype. Article 1 is waiting.
@@ -303,7 +303,7 @@ function ArchetypeReveal({
 
       {error && (
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
           color: '#EF4444',
           marginBottom: '12px',
@@ -319,11 +319,11 @@ function ArchetypeReveal({
         style={{
           width: '100%',
           padding: '16px',
-          background: submitting ? '#E2E8F0' : '#4F46E5',
-          color: submitting ? '#94A3B8' : 'white',
+          background: submitting ? '#2a3340' : '#ff6b35',
+          color: submitting ? '#6b7685' : 'white',
           border: 'none',
           borderRadius: '12px',
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '15px',
           fontWeight: 500,
           cursor: submitting ? 'not-allowed' : 'pointer',
@@ -331,10 +331,10 @@ function ArchetypeReveal({
           outline: 'none',
         }}
         onMouseEnter={(e) => {
-          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#3730A3'
+          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#e05a28'
         }}
         onMouseLeave={(e) => {
-          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#4F46E5'
+          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35'
         }}
       >
         {submitting ? 'Setting up your path...' : 'Start reading →'}
@@ -356,7 +356,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
         marginBottom: '10px',
       }}>
         <span style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '12px',
           fontWeight: 500,
           letterSpacing: '0.08em',
@@ -367,7 +367,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
         </span>
         {current < total && (
           <span style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
             fontSize: '13px',
             color: 'var(--text-muted)',
           }}>
@@ -375,7 +375,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
           </span>
         )}
       </div>
-      <div style={{ height: '3px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
+      <div style={{ height: '3px', background: '#2a3340', borderRadius: '99px', overflow: 'hidden' }}>
         <div style={{
           height: '100%',
           width: `${pct}%`,
@@ -724,11 +724,11 @@ export default function OnboardingFlow() {
                   style={{
                     width: '100%',
                     padding: '16px',
-                    background: canProceed ? 'var(--indigo)' : '#E2E8F0',
+                    background: canProceed ? 'var(--indigo)' : '#2a3340',
                     color: canProceed ? 'white' : 'var(--text-muted)',
                     border: 'none',
                     borderRadius: '12px',
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', sans-serif",
                     fontSize: '15px',
                     fontWeight: 500,
                     cursor: canProceed ? 'pointer' : 'not-allowed',

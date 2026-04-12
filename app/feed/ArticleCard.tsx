@@ -32,9 +32,9 @@ type GateState = 'idle' | 'reading' | 'returned_fail' | 'returned_pass'
 
 function DifficultyBadge({ level }: { level: number }) {
   const colors: Record<number, { bg: string; color: string; label: string }> = {
-    1: { bg: '#F0FDF4', color: '#16A34A', label: 'Beginner' },
-    2: { bg: '#FFF7ED', color: '#EA580C', label: 'Intermediate' },
-    3: { bg: '#FEF2F2', color: '#DC2626', label: 'Advanced' },
+    1: { bg: 'rgba(74,222,128,0.08)', color: '#4ade80', label: 'Beginner' },
+    2: { bg: 'rgba(239,68,68,0.08)', color: '#EA580C', label: 'Intermediate' },
+    3: { bg: 'rgba(239,68,68,0.08)', color: '#DC2626', label: 'Advanced' },
   }
   const style = colors[level] || colors[1]
   return (
@@ -45,7 +45,7 @@ function DifficultyBadge({ level }: { level: number }) {
       borderRadius: '99px',
       fontSize: '11px',
       fontWeight: 600,
-      fontFamily: "'DM Sans', sans-serif",
+      fontFamily: "'Inter', sans-serif",
     }}>
       {style.label}
     </span>
@@ -145,8 +145,8 @@ export default function ArticleCard({
 
   return (
     <div style={{
-      background: 'white',
-      border: '1px solid #E2E8F0',
+      background: '#121821',
+      border: '1px solid #2a3340',
       borderRadius: '16px',
       overflow: 'hidden',
       marginBottom: '16px',
@@ -155,25 +155,25 @@ export default function ArticleCard({
       {/* Position header */}
       <div style={{
         padding: '14px 20px',
-        borderBottom: '1px solid #F1F5F9',
+        borderBottom: '1px solid #1e2a38',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: '#FAFAFE',
+        background: '#161e28',
       }}>
         <span style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '12px',
           fontWeight: 600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color: '#4F46E5',
+          color: '#ff6b35',
         }}>
           Article {row.position} of {totalInPath}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {article.difficulty && <DifficultyBadge level={article.difficulty} />}
-          <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+          <span style={{ fontSize: '12px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
             {article.reading_time_minutes} min
           </span>
         </div>
@@ -187,12 +187,12 @@ export default function ArticleCard({
             {article.topics.slice(0, 2).map((t) => (
               <span key={t} style={{
                 padding: '3px 10px',
-                background: '#EEF2FF',
-                color: '#4F46E5',
+                background: 'rgba(255,107,53,0.12)',
+                color: '#ff6b35',
                 borderRadius: '99px',
                 fontSize: '11px',
                 fontWeight: 500,
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
               }}>
                 {t}
               </span>
@@ -202,10 +202,10 @@ export default function ArticleCard({
 
         {/* Title */}
         <h2 style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '17px',
           fontWeight: 600,
-          color: '#1E293B',
+          color: '#f6fafe',
           lineHeight: 1.4,
           marginBottom: '10px',
         }}>
@@ -215,9 +215,9 @@ export default function ArticleCard({
         {/* Hook — italic teaser line */}
         {hook && (
           <p style={{
-            fontFamily: "'Instrument Serif', serif",
+            fontFamily: "'Manrope', sans-serif",
             fontSize: '15px',
-            color: '#475569',
+            color: '#8b96a5',
             lineHeight: 1.6,
             marginBottom: '10px',
             fontStyle: 'italic',
@@ -229,9 +229,9 @@ export default function ArticleCard({
         {/* Summary */}
         {summary && !hook && (
           <p style={{
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', sans-serif",
             fontSize: '14px',
-            color: '#64748B',
+            color: '#8b96a5',
             lineHeight: 1.6,
             marginBottom: '10px',
             display: '-webkit-box',
@@ -244,7 +244,7 @@ export default function ArticleCard({
         )}
 
         {/* Source */}
-        <p style={{ fontSize: '12px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+        <p style={{ fontSize: '12px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
           {article.source}
         </p>
       </div>
@@ -252,8 +252,8 @@ export default function ArticleCard({
       {/* Gate / CTA area */}
       <div style={{
         padding: '16px 20px',
-        borderTop: '1px solid #F1F5F9',
-        background: gateState === 'returned_pass' ? '#F0FDF4' : '#FAFAFA',
+        borderTop: '1px solid #1e2a38',
+        background: gateState === 'returned_pass' ? 'rgba(74,222,128,0.06)' : '#161e28',
       }}>
         {gateState === 'idle' && (
           <button
@@ -261,19 +261,19 @@ export default function ArticleCard({
             style={{
               width: '100%',
               padding: '14px',
-              background: '#4F46E5',
+              background: '#ff6b35',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Inter', sans-serif",
               fontSize: '15px',
               fontWeight: 500,
               cursor: 'pointer',
               outline: 'none',
               transition: 'background 150ms ease',
             }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#3730A3' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#4F46E5' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#e05a28' }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35' }}
           >
             Read Article →
           </button>
@@ -283,15 +283,15 @@ export default function ArticleCard({
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '28px', marginBottom: '8px' }}>📖</div>
             <p style={{
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Inter', sans-serif",
               fontSize: '14px',
               fontWeight: 500,
-              color: '#475569',
+              color: '#8b96a5',
               marginBottom: '4px',
             }}>
               Reading Article {row.position}...
             </p>
-            <p style={{ fontSize: '13px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: '13px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
               Come back when you&apos;re done — we&apos;re tracking your time.
             </p>
           </div>
@@ -300,23 +300,23 @@ export default function ArticleCard({
         {gateState === 'returned_fail' && (
           <div>
             <div style={{
-              background: '#FFF7ED',
-              border: '1px solid #FED7AA',
+              background: 'rgba(239,68,68,0.08)',
+              border: '1px solid rgba(239,68,68,0.2)',
               borderRadius: '10px',
               padding: '14px',
               marginBottom: '12px',
               textAlign: 'center',
             }}>
               <p style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 fontSize: '14px',
                 fontWeight: 500,
-                color: '#C2410C',
+                color: '#f87171',
                 marginBottom: '4px',
               }}>
                 Almost there!
               </p>
-              <p style={{ fontSize: '13px', color: '#9A3412', fontFamily: "'DM Sans', sans-serif" }}>
+              <p style={{ fontSize: '13px', color: '#f87171', fontFamily: "'Inter', sans-serif" }}>
                 You need ~{remaining}s more. Give it another read.
               </p>
             </div>
@@ -325,11 +325,11 @@ export default function ArticleCard({
               style={{
                 width: '100%',
                 padding: '12px',
-                background: 'white',
-                color: '#4F46E5',
-                border: '1.5px solid #4F46E5',
+                background: '#161e28',
+                color: '#ff6b35',
+                border: '1.5px solid #ff6b35',
                 borderRadius: '10px',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 fontSize: '14px',
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -344,22 +344,22 @@ export default function ArticleCard({
         {gateState === 'returned_pass' && (
           <div style={{ textAlign: 'center' }}>
             {saving ? (
-              <p style={{ fontSize: '14px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+              <p style={{ fontSize: '14px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
                 Checking...
               </p>
             ) : (
               <>
                 <div style={{ fontSize: '24px', marginBottom: '6px' }}>✓</div>
                 <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', sans-serif",
                   fontSize: '14px',
                   fontWeight: 500,
-                  color: '#16A34A',
+                  color: '#4ade80',
                   marginBottom: '2px',
                 }}>
                   Nice read.
                 </p>
-                <p style={{ fontSize: '13px', color: '#4B7A55', fontFamily: "'DM Sans', sans-serif" }}>
+                <p style={{ fontSize: '13px', color: '#4ade80', fontFamily: "'Inter', sans-serif" }}>
                   Next article is waiting for you below.
                 </p>
               </>

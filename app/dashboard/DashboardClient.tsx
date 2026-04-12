@@ -42,27 +42,27 @@ type DashboardData = {
 function StatCard({ value, label, accent }: { value: string | number; label: string; accent?: boolean }) {
   return (
     <div style={{
-      background: accent ? '#4F46E5' : 'white',
-      border: `1px solid ${accent ? '#4F46E5' : '#E2E8F0'}`,
+      background: accent ? '#ff6b35' : '#121821',
+      border: `1px solid ${accent ? '#ff6b35' : '#2a3340'}`,
       borderRadius: '14px',
       padding: '20px',
       flex: 1,
       minWidth: '0',
     }}>
       <p style={{
-        fontFamily: "'Instrument Serif', serif",
+        fontFamily: "'Manrope', sans-serif",
         fontSize: '32px',
         fontWeight: 400,
-        color: accent ? 'white' : '#1E293B',
+        color: accent ? 'white' : '#f6fafe',
         lineHeight: 1,
         marginBottom: '6px',
       }}>
         {value}
       </p>
       <p style={{
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '12px',
-        color: accent ? 'rgba(255,255,255,0.75)' : '#64748B',
+        color: accent ? 'rgba(255,255,255,0.75)' : '#8b96a5',
         lineHeight: 1.3,
       }}>
         {label}
@@ -105,9 +105,9 @@ export default function DashboardClient() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#0b0f14', fontFamily: "'Inter', sans-serif" }}>
       {/* Header */}
-      <header style={{ background: 'white', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 10 }}>
+      <header style={{ background: '#121821', borderBottom: '1px solid #2a3340', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{
           maxWidth: '640px',
           margin: '0 auto',
@@ -117,14 +117,14 @@ export default function DashboardClient() {
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '18px', color: '#1E293B' }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', color: '#f6fafe' }}>
             PM Dojo
           </span>
           <nav style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <Link href="/feed" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#64748B', textDecoration: 'none' }}>
+            <Link href="/feed" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none' }}>
               Feed
             </Link>
-            <span style={{ fontSize: '13px', color: '#94A3B8' }}>
+            <span style={{ fontSize: '13px', color: '#6b7685' }}>
               {userEmail.split('@')[0]}
             </span>
             <button
@@ -135,13 +135,13 @@ export default function DashboardClient() {
               }}
               style={{
                 background: 'none',
-                border: '1px solid #E2E8F0',
+                border: '1px solid #2a3340',
                 borderRadius: '8px',
                 padding: '5px 12px',
                 fontSize: '12px',
-                color: '#64748B',
+                color: '#8b96a5',
                 cursor: 'pointer',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 outline: 'none',
               }}
             >
@@ -155,16 +155,16 @@ export default function DashboardClient() {
         {/* Title */}
         <div style={{ marginBottom: '24px' }}>
           <h1 style={{
-            fontFamily: "'Instrument Serif', serif",
+            fontFamily: "'Manrope', sans-serif",
             fontSize: 'clamp(24px, 6vw, 30px)',
             fontWeight: 400,
-            color: '#1E293B',
+            color: '#f6fafe',
             lineHeight: 1.2,
             marginBottom: '4px',
           }}>
             Your progress
           </h1>
-          <p style={{ fontSize: '14px', color: '#94A3B8' }}>
+          <p style={{ fontSize: '14px', color: '#6b7685' }}>
             {loading ? '...' : data?.readToday ? 'You read today. Keep it up.' : 'Read today to extend your streak.'}
           </p>
         </div>
@@ -172,34 +172,34 @@ export default function DashboardClient() {
         {loading ? (
           <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} style={{ flex: 1, height: '90px', background: '#F1F5F9', borderRadius: '14px' }} />
+              <div key={i} style={{ flex: 1, height: '90px', background: '#1e2a38', borderRadius: '14px' }} />
             ))}
           </div>
         ) : fetchError ? (
           <div style={{
-            background: 'white',
-            border: '1px solid #FED7AA',
+            background: '#121821',
+            border: '1px solid rgba(239,68,68,0.2)',
             borderRadius: '14px',
             padding: '32px',
             textAlign: 'center',
             marginBottom: '16px',
           }}>
-            <p style={{ fontSize: '14px', fontWeight: 500, color: '#C2410C', marginBottom: '8px', fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: '14px', fontWeight: 500, color: '#f87171', marginBottom: '8px', fontFamily: "'Inter', sans-serif" }}>
               Couldn&apos;t load your dashboard
             </p>
-            <p style={{ fontSize: '13px', color: '#94A3B8', marginBottom: '16px', fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: '13px', color: '#6b7685', marginBottom: '16px', fontFamily: "'Inter', sans-serif" }}>
               Check your connection and reload the page.
             </p>
             <button
               onClick={() => window.location.reload()}
               style={{
                 padding: '10px 20px',
-                background: '#4F46E5',
+                background: '#ff6b35',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
                 fontSize: '13px',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 cursor: 'pointer',
               }}
             >
@@ -211,25 +211,25 @@ export default function DashboardClient() {
             {/* Archetype identity card */}
             {data.archetypeDisplay && (
               <div style={{
-                background: 'linear-gradient(135deg, #1E1B4B 0%, #312E81 100%)',
+                background: 'linear-gradient(135deg, #1a1208 0%, #2d1a0e 100%)',
                 borderRadius: '16px',
                 padding: '24px',
                 marginBottom: '16px',
                 color: 'white',
               }}>
                 <p style={{
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', sans-serif",
                   fontSize: '11px',
                   fontWeight: 600,
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  color: '#818CF8',
+                  color: '#ffb89a',
                   marginBottom: '8px',
                 }}>
                   You are
                 </p>
                 <h2 style={{
-                  fontFamily: "'Instrument Serif', serif",
+                  fontFamily: "'Manrope', sans-serif",
                   fontSize: '24px',
                   fontWeight: 400,
                   color: 'white',
@@ -237,7 +237,7 @@ export default function DashboardClient() {
                 }}>
                   {data.archetypeDisplay}
                 </h2>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#A5B4FC', lineHeight: 1.5 }}>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#ffb89a', lineHeight: 1.5 }}>
                   {data.archetypeTagline}
                 </p>
 
@@ -245,10 +245,10 @@ export default function DashboardClient() {
                 {data.totalInPath > 0 && (
                   <div style={{ marginTop: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: '#818CF8' }}>
+                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: '#ffb89a' }}>
                         10-article path
                       </span>
-                      <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: '#818CF8' }}>
+                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: '#ffb89a' }}>
                         {data.completedCount} / {data.totalInPath}
                       </span>
                     </div>
@@ -256,7 +256,7 @@ export default function DashboardClient() {
                       <div style={{
                         height: '100%',
                         width: `${data.totalInPath > 0 ? (data.completedCount / data.totalInPath) * 100 : 0}%`,
-                        background: '#A5B4FC',
+                        background: '#ff6b35',
                         borderRadius: '99px',
                         transition: 'width 600ms ease',
                         minWidth: data.completedCount > 0 ? '6px' : '0',
@@ -270,8 +270,8 @@ export default function DashboardClient() {
             {/* PM Dojo score (shown after completing path or after 7 days) */}
             {data.dojoScore !== null && data.quizSessions >= 1 && (
               <div style={{
-                background: 'white',
-                border: '1px solid #E2E8F0',
+                background: '#121821',
+                border: '1px solid #2a3340',
                 borderRadius: '14px',
                 padding: '20px',
                 marginBottom: '16px',
@@ -283,28 +283,28 @@ export default function DashboardClient() {
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: data.dojoScore >= 75 ? '#4F46E5' : '#F8FAFC',
+                  background: data.dojoScore >= 75 ? '#ff6b35' : '#161e28',
                   border: '3px solid',
-                  borderColor: data.dojoScore >= 75 ? '#4F46E5' : '#E2E8F0',
+                  borderColor: data.dojoScore >= 75 ? '#ff6b35' : '#2a3340',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                 }}>
                   <span style={{
-                    fontFamily: "'Instrument Serif', serif",
+                    fontFamily: "'Manrope', sans-serif",
                     fontSize: '20px',
                     fontWeight: 400,
-                    color: data.dojoScore >= 75 ? 'white' : '#1E293B',
+                    color: data.dojoScore >= 75 ? 'white' : '#f6fafe',
                   }}>
                     {data.dojoScore}
                   </span>
                 </div>
                 <div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#1E293B', marginBottom: '3px' }}>
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: '#f6fafe', marginBottom: '3px' }}>
                     PM Dojo Score
                   </p>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#64748B' }}>
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5' }}>
                     {data.dojoScore >= 75 ? 'Strong performance across your quizzes.' : 'Keep reading and quizzing to improve.'}
                   </p>
                 </div>
@@ -333,13 +333,13 @@ export default function DashboardClient() {
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: 'white',
-                    border: '1.5px solid #E2E8F0',
+                    background: '#121821',
+                    border: '1.5px solid #2a3340',
                     borderRadius: '12px',
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', sans-serif",
                     fontSize: '14px',
                     fontWeight: 500,
-                    color: '#4F46E5',
+                    color: '#ff6b35',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -347,8 +347,8 @@ export default function DashboardClient() {
                     gap: '8px',
                     outline: 'none',
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#F8FAFF' }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'white' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#1a2332' }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#121821' }}
                 >
                   <span>🔗</span> Share your {data.streak}-day streak
                 </button>
@@ -358,8 +358,8 @@ export default function DashboardClient() {
                     top: '-40px',
                     left: '50%',
                     transform: 'translateX(-50%)',
-                    background: '#1E293B',
-                    color: 'white',
+                    background: '#f6fafe',
+                    color: '#0b0f14',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     fontSize: '13px',
@@ -375,13 +375,13 @@ export default function DashboardClient() {
 
             {/* Last 7 days */}
             <div style={{
-              background: 'white',
-              border: '1px solid #E2E8F0',
+              background: '#121821',
+              border: '1px solid #2a3340',
               borderRadius: '14px',
               padding: '20px',
               marginBottom: '16px',
             }}>
-              <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94A3B8', marginBottom: '14px' }}>
+              <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7685', marginBottom: '14px' }}>
                 Last 7 days
               </p>
               <div style={{ display: 'flex', gap: '6px' }}>
@@ -393,7 +393,7 @@ export default function DashboardClient() {
                       <div style={{
                         width: '100%',
                         aspectRatio: '1',
-                        background: day.read ? '#4F46E5' : '#F1F5F9',
+                        background: day.read ? '#ff6b35' : '#1e2a38',
                         borderRadius: '8px',
                         marginBottom: '6px',
                         display: 'flex',
@@ -406,7 +406,7 @@ export default function DashboardClient() {
                           </svg>
                         )}
                       </div>
-                      <span style={{ fontSize: '10px', color: '#94A3B8' }}>{label}</span>
+                      <span style={{ fontSize: '10px', color: '#6b7685' }}>{label}</span>
                     </div>
                   )
                 })}
@@ -416,27 +416,27 @@ export default function DashboardClient() {
             {/* Skill progress */}
             {data.skillProgress?.length > 0 && (
               <div style={{
-                background: 'white',
-                border: '1px solid #E2E8F0',
+                background: '#121821',
+                border: '1px solid #2a3340',
                 borderRadius: '14px',
                 padding: '20px',
                 marginBottom: '16px',
               }}>
-                <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94A3B8', marginBottom: '16px' }}>
+                <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7685', marginBottom: '16px' }}>
                   Skill progress
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {data.skillProgress.map((skill) => (
                     <div key={skill.topic}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#1E293B' }}>{skill.topic}</span>
-                        <span style={{ fontSize: '12px', color: '#94A3B8' }}>{skill.count}/{skill.target}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#f6fafe' }}>{skill.topic}</span>
+                        <span style={{ fontSize: '12px', color: '#6b7685' }}>{skill.count}/{skill.target}</span>
                       </div>
-                      <div style={{ height: '6px', background: '#F1F5F9', borderRadius: '99px', overflow: 'hidden' }}>
+                      <div style={{ height: '6px', background: '#1e2a38', borderRadius: '99px', overflow: 'hidden' }}>
                         <div style={{
                           height: '100%',
                           width: `${skill.percent}%`,
-                          background: skill.percent >= 100 ? '#10B981' : '#4F46E5',
+                          background: skill.percent >= 100 ? '#4ade80' : '#ff6b35',
                           borderRadius: '99px',
                           transition: 'width 600ms ease',
                           minWidth: skill.count > 0 ? '6px' : '0',
@@ -451,13 +451,13 @@ export default function DashboardClient() {
             {/* Recent reads */}
             {data.recentReads.length > 0 && (
               <div style={{
-                background: 'white',
-                border: '1px solid #E2E8F0',
+                background: '#121821',
+                border: '1px solid #2a3340',
                 borderRadius: '14px',
                 overflow: 'hidden',
               }}>
                 <div style={{ padding: '20px 20px 12px' }}>
-                  <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#94A3B8' }}>
+                  <p style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7685' }}>
                     Recently read
                   </p>
                 </div>
@@ -467,13 +467,13 @@ export default function DashboardClient() {
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ display: 'block', padding: '14px 20px', borderTop: '1px solid #F1F5F9', textDecoration: 'none' }}
+                    style={{ display: 'block', padding: '14px 20px', borderTop: '1px solid #1e2a38', textDecoration: 'none' }}
                   >
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 500, color: '#1E293B', lineHeight: 1.35, marginBottom: '4px' }}>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 500, color: '#f6fafe', lineHeight: 1.35, marginBottom: '4px' }}>
                       {item.title}
                     </p>
-                    <div style={{ display: 'flex', gap: '6px', fontSize: '12px', color: '#94A3B8', alignItems: 'center' }}>
-                      <span style={{ color: '#64748B', fontWeight: 500 }}>{item.source}</span>
+                    <div style={{ display: 'flex', gap: '6px', fontSize: '12px', color: '#6b7685', alignItems: 'center' }}>
+                      <span style={{ color: '#8b96a5', fontWeight: 500 }}>{item.source}</span>
                       <span>·</span>
                       <span>{item.date ? new Date(item.date).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : ''}</span>
                     </div>

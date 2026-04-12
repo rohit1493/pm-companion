@@ -97,8 +97,8 @@ function ScannerCard({ article }: { article: Article }) {
       style={{
         display: 'block',
         padding: '20px',
-        background: hovered ? '#FAFAFE' : 'white',
-        borderBottom: '1px solid #F1F5F9',
+        background: hovered ? '#1a2332' : '#121821',
+        borderBottom: '1px solid #1e2a38',
         textDecoration: 'none',
         transition: 'background 150ms ease',
       }}
@@ -108,12 +108,12 @@ function ScannerCard({ article }: { article: Article }) {
           {article.topics.slice(0, 2).map((t) => (
             <span key={t} style={{
               padding: '3px 10px',
-              background: '#EEF2FF',
-              color: '#4F46E5',
+              background: 'rgba(255,107,53,0.12)',
+              color: '#ff6b35',
               borderRadius: '99px',
               fontSize: '11px',
               fontWeight: 500,
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Inter', sans-serif",
             }}>
               {t}
             </span>
@@ -121,10 +121,10 @@ function ScannerCard({ article }: { article: Article }) {
         </div>
       )}
       <p style={{
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '15px',
         fontWeight: 500,
-        color: hovered ? '#4F46E5' : '#1E293B',
+        color: hovered ? '#ff6b35' : '#f6fafe',
         lineHeight: 1.4,
         marginBottom: '6px',
         transition: 'color 150ms ease',
@@ -133,9 +133,9 @@ function ScannerCard({ article }: { article: Article }) {
       </p>
       {article.summary && (
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
-          color: '#64748B',
+          color: '#8b96a5',
           lineHeight: 1.5,
           marginBottom: '8px',
           display: '-webkit-box',
@@ -146,8 +146,8 @@ function ScannerCard({ article }: { article: Article }) {
           {article.summary}
         </p>
       )}
-      <div style={{ fontSize: '12px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif", display: 'flex', gap: '8px' }}>
-        <span style={{ fontWeight: 500, color: '#64748B' }}>{article.source}</span>
+      <div style={{ fontSize: '12px', color: '#6b7685', fontFamily: "'Inter', sans-serif", display: 'flex', gap: '8px' }}>
+        <span style={{ fontWeight: 500, color: '#8b96a5' }}>{article.source}</span>
         <span>·</span>
         <span>{timeAgo(article.published_at)}</span>
         <span>·</span>
@@ -162,8 +162,8 @@ function ScannerCard({ article }: { article: Article }) {
 function LockedCard({ row, totalInPath }: { row: ProgressRow; totalInPath: number }) {
   return (
     <div style={{
-      background: '#FAFAFA',
-      border: '1px solid #E2E8F0',
+      background: '#161e28',
+      border: '1px solid #2a3340',
       borderRadius: '16px',
       padding: '20px',
       marginBottom: '16px',
@@ -175,7 +175,7 @@ function LockedCard({ row, totalInPath }: { row: ProgressRow; totalInPath: numbe
         position: 'absolute',
         inset: 0,
         backdropFilter: 'blur(4px)',
-        background: 'rgba(248,250,252,0.6)',
+        background: 'rgba(11,15,20,0.6)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -185,10 +185,10 @@ function LockedCard({ row, totalInPath }: { row: ProgressRow; totalInPath: numbe
       }}>
         <span style={{ fontSize: '24px' }}>🔒</span>
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
           fontWeight: 500,
-          color: '#64748B',
+          color: '#8b96a5',
           textAlign: 'center',
         }}>
           Complete Article {row.position - 1} to unlock
@@ -198,21 +198,21 @@ function LockedCard({ row, totalInPath }: { row: ProgressRow; totalInPath: numbe
       {/* Background content (blurred) */}
       <div style={{ opacity: 0.3, pointerEvents: 'none' }}>
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '12px',
           fontWeight: 600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          color: '#4F46E5',
+          color: '#ff6b35',
           marginBottom: '10px',
         }}>
           Article {row.position} of {totalInPath}
         </p>
         <p style={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontSize: '17px',
           fontWeight: 600,
-          color: '#1E293B',
+          color: '#f6fafe',
           lineHeight: 1.4,
         }}>
           {row.articles.title}
@@ -229,19 +229,19 @@ function CompletedStack({ rows }: { rows: ProgressRow[] }) {
   return (
     <div style={{ marginTop: '24px' }}>
       <p style={{
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', sans-serif",
         fontSize: '12px',
         fontWeight: 600,
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
-        color: '#94A3B8',
+        color: '#6b7685',
         marginBottom: '12px',
       }}>
         Completed
       </p>
       <div style={{
-        background: 'white',
-        border: '1px solid #E2E8F0',
+        background: '#121821',
+        border: '1px solid #2a3340',
         borderRadius: '14px',
         overflow: 'hidden',
       }}>
@@ -256,7 +256,7 @@ function CompletedStack({ rows }: { rows: ProgressRow[] }) {
               alignItems: 'center',
               gap: '14px',
               padding: '14px 16px',
-              borderBottom: '1px solid #F1F5F9',
+              borderBottom: '1px solid #1e2a38',
               textDecoration: 'none',
             }}
           >
@@ -264,23 +264,23 @@ function CompletedStack({ rows }: { rows: ProgressRow[] }) {
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              background: '#F0FDF4',
-              border: '1.5px solid #86EFAC',
+              background: 'rgba(74,222,128,0.08)',
+              border: '1.5px solid rgba(74,222,128,0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
             }}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M2 6l3 3 5-5" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 6l3 3 5-5" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
             <div style={{ minWidth: 0 }}>
               <p style={{
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 fontSize: '14px',
                 fontWeight: 500,
-                color: '#475569',
+                color: '#8b96a5',
                 lineHeight: 1.3,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -288,7 +288,7 @@ function CompletedStack({ rows }: { rows: ProgressRow[] }) {
               }}>
                 {row.articles.title}
               </p>
-              <p style={{ fontSize: '11px', color: '#94A3B8', fontFamily: "'DM Sans', sans-serif" }}>
+              <p style={{ fontSize: '11px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
                 Article {row.position}
               </p>
             </div>
@@ -306,18 +306,18 @@ function PathProgress({ completed, total }: { completed: number; total: number }
   return (
     <div style={{ marginBottom: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', fontWeight: 500, color: '#475569' }}>
+        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', fontWeight: 500, color: '#8b96a5' }}>
           Your path
         </span>
-        <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#94A3B8' }}>
+        <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#6b7685' }}>
           {completed} / {total}
         </span>
       </div>
-      <div style={{ height: '6px', background: '#E2E8F0', borderRadius: '99px', overflow: 'hidden' }}>
+      <div style={{ height: '6px', background: '#2a3340', borderRadius: '99px', overflow: 'hidden' }}>
         <div style={{
           height: '100%',
           width: `${pct}%`,
-          background: pct >= 100 ? '#10B981' : '#4F46E5',
+          background: pct >= 100 ? '#4ade80' : '#ff6b35',
           borderRadius: '99px',
           transition: 'width 600ms ease',
           minWidth: completed > 0 ? '8px' : '0',
@@ -331,11 +331,11 @@ function PathProgress({ completed, total }: { completed: number; total: number }
 
 function Skeleton() {
   return (
-    <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
-      <div style={{ width: '120px', height: '12px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '12px' }} />
-      <div style={{ width: '90%', height: '18px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '8px' }} />
-      <div style={{ width: '70%', height: '18px', background: '#F1F5F9', borderRadius: '4px', marginBottom: '14px' }} />
-      <div style={{ width: '100%', height: '44px', background: '#F1F5F9', borderRadius: '10px' }} />
+    <div style={{ background: '#121821', border: '1px solid #2a3340', borderRadius: '16px', padding: '20px', marginBottom: '16px' }}>
+      <div style={{ width: '120px', height: '12px', background: '#1e2a38', borderRadius: '4px', marginBottom: '12px' }} />
+      <div style={{ width: '90%', height: '18px', background: '#1e2a38', borderRadius: '4px', marginBottom: '8px' }} />
+      <div style={{ width: '70%', height: '18px', background: '#1e2a38', borderRadius: '4px', marginBottom: '14px' }} />
+      <div style={{ width: '100%', height: '44px', background: '#1e2a38', borderRadius: '10px' }} />
     </div>
   )
 }
@@ -425,26 +425,26 @@ export default function FeedClient() {
   const scannerData = !isPath ? (feedData as ScannerFeedData) : null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#0b0f14', fontFamily: "'Inter', sans-serif" }}>
       {/* Header */}
       <header style={{
-        background: 'white',
-        borderBottom: '1px solid #E2E8F0',
+        background: '#121821',
+        borderBottom: '1px solid #2a3340',
         position: 'sticky',
         top: 0,
         zIndex: 10,
       }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', padding: '0 20px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: '18px', color: '#1E293B' }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', color: '#f6fafe' }}>
             PM Dojo
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {userEmail && (
               <>
-                <Link href="/dashboard" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '13px', color: '#64748B', textDecoration: 'none' }}>
+                <Link href="/dashboard" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none' }}>
                   Dashboard
                 </Link>
-                <span style={{ fontSize: '13px', color: '#94A3B8' }}>
+                <span style={{ fontSize: '13px', color: '#6b7685' }}>
                   {userEmail.split('@')[0]}
                 </span>
                 <button
@@ -455,13 +455,13 @@ export default function FeedClient() {
                   }}
                   style={{
                     background: 'none',
-                    border: '1px solid #E2E8F0',
+                    border: '1px solid #2a3340',
                     borderRadius: '8px',
                     padding: '5px 12px',
                     fontSize: '12px',
-                    color: '#64748B',
+                    color: '#8b96a5',
                     cursor: 'pointer',
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', sans-serif",
                   }}
                 >
                   Sign out
@@ -516,15 +516,15 @@ export default function FeedClient() {
             {feedData.archetypeDisplay && (
               <div style={{ marginBottom: '24px' }}>
                 <h1 style={{
-                  fontFamily: "'Instrument Serif', serif",
+                  fontFamily: "'Manrope', sans-serif",
                   fontSize: '22px',
                   fontWeight: 400,
-                  color: '#1E293B',
+                  color: '#f6fafe',
                   marginBottom: '4px',
                 }}>
                   {feedData.archetypeDisplay}
                 </h1>
-                <p style={{ fontSize: '14px', color: '#94A3B8' }}>
+                <p style={{ fontSize: '14px', color: '#6b7685' }}>
                   {feedData.archetypeTagline}
                 </p>
               </div>
@@ -537,7 +537,7 @@ export default function FeedClient() {
 
                 {pathData.quizReady && (
                   <div style={{
-                    background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                    background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%)',
                     borderRadius: '14px',
                     padding: '16px 20px',
                     marginBottom: '16px',
@@ -549,10 +549,10 @@ export default function FeedClient() {
                   onClick={() => setPhase('quiz')}
                   >
                     <div>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: 'white', marginBottom: '2px' }}>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: 'white', marginBottom: '2px' }}>
                         ⚡ Quiz ready
                       </p>
-                      <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
                         Test what you&apos;ve learned
                       </p>
                     </div>
@@ -583,20 +583,20 @@ export default function FeedClient() {
                 {pathData.current === null && pathData.completedCount === pathData.totalInPath && pathData.totalInPath > 0 && (
                   <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
-                    <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: '24px', fontWeight: 400, color: '#1E293B', marginBottom: '8px' }}>
+                    <h2 style={{ fontFamily: "'Manrope', sans-serif", fontSize: '24px', fontWeight: 400, color: '#f6fafe', marginBottom: '8px' }}>
                       Path complete!
                     </h2>
-                    <p style={{ fontSize: '14px', color: '#64748B', fontFamily: "'DM Sans', sans-serif" }}>
+                    <p style={{ fontSize: '14px', color: '#8b96a5', fontFamily: "'Inter', sans-serif" }}>
                       You&apos;ve read all 10 articles. Check your dashboard for your PM Dojo score.
                     </p>
                     <Link href="/dashboard" style={{
                       display: 'inline-block',
                       marginTop: '20px',
                       padding: '12px 24px',
-                      background: '#4F46E5',
+                      background: '#ff6b35',
                       color: 'white',
                       borderRadius: '10px',
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Inter', sans-serif",
                       fontSize: '14px',
                       fontWeight: 500,
                       textDecoration: 'none',
@@ -607,9 +607,9 @@ export default function FeedClient() {
                 )}
 
                 {pathData.current === null && pathData.totalInPath === 0 && (
-                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94A3B8' }}>
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7685' }}>
                     <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px' }}>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px' }}>
                       Your path is being built. Check back shortly.
                     </p>
                   </div>
@@ -621,11 +621,11 @@ export default function FeedClient() {
 
             {/* SCANNER VIEW */}
             {scannerData && (
-              <div style={{ background: 'white', border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden' }}>
+              <div style={{ background: '#121821', border: '1px solid #2a3340', borderRadius: '14px', overflow: 'hidden' }}>
                 {scannerData.articles.length === 0 ? (
-                  <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8' }}>
+                  <div style={{ padding: '60px 20px', textAlign: 'center', color: '#6b7685' }}>
                     <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '14px' }}>No articles yet. Check back soon.</p>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px' }}>No articles yet. Check back soon.</p>
                   </div>
                 ) : (
                   scannerData.articles.map((article) => (
