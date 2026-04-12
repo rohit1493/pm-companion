@@ -115,12 +115,12 @@ export default function DashboardClient() {
           margin: '0 auto',
           padding: '0 16px',
           height: '56px',
-          display: 'grid',
-          gridTemplateColumns: '1fr auto 1fr',
+          position: 'relative',
+          display: 'flex',
           alignItems: 'center',
         }}>
           {/* Left — Hamburger + Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', zIndex: 1 }}>
             <button
               onClick={() => setMenuOpen((o) => !o)}
               aria-label="Menu"
@@ -147,8 +147,11 @@ export default function DashboardClient() {
             </span>
           </div>
 
-          {/* Centre — Tab nav */}
+          {/* Centre — Tab nav, absolutely centered */}
           <div style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
             display: 'flex',
             alignItems: 'center',
             background: '#0b0f14',
@@ -165,9 +168,6 @@ export default function DashboardClient() {
               Dashboard
             </span>
           </div>
-
-          {/* Right — empty (balance grid) */}
-          <div />
         </div>
 
         {/* Hamburger dropdown */}
