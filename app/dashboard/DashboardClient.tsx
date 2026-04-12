@@ -121,24 +121,33 @@ export default function DashboardClient() {
           <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', flexShrink: 0 }}>
             PM Dojo
           </span>
-          <nav style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            {/* Username pill */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <span style={{
               fontFamily: "'Inter', sans-serif",
-              fontSize: '13px',
+              fontSize: '12px',
               color: '#6b7685',
               background: '#161e28',
               border: '1px solid #2a3340',
               borderRadius: '999px',
-              padding: '4px 12px',
+              padding: '0 12px',
+              height: '30px',
+              lineHeight: '30px',
               maxWidth: '140px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+              display: 'inline-block',
             }}>
               {userEmail.split('@')[0]}
             </span>
-            <Link href="/feed" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            <Link href="/feed" style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '13px',
+              color: '#8b96a5',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              lineHeight: '30px',
+            }}>
               Feed
             </Link>
             <button
@@ -151,13 +160,16 @@ export default function DashboardClient() {
                 background: 'none',
                 border: '1px solid #2a3340',
                 borderRadius: '8px',
-                padding: '6px 14px',
+                height: '30px',
+                padding: '0 14px',
                 fontSize: '12px',
                 color: '#8b96a5',
                 cursor: 'pointer',
                 fontFamily: "'Inter', sans-serif",
                 outline: 'none',
                 whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
               Sign out

@@ -450,59 +450,64 @@ export default function FeedClient() {
           </span>
 
           {/* Right side nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {userEmail && (
-              <>
-                {/* Username pill */}
-                <span style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '13px',
-                  color: '#6b7685',
-                  background: '#161e28',
+          {userEmail && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '12px',
+                color: '#6b7685',
+                background: '#161e28',
+                border: '1px solid #2a3340',
+                borderRadius: '999px',
+                padding: '0 12px',
+                height: '30px',
+                lineHeight: '30px',
+                maxWidth: '140px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                display: 'inline-block',
+              }}>
+                {userEmail.split('@')[0]}
+              </span>
+
+              <Link href="/dashboard" style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '13px',
+                color: '#8b96a5',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                lineHeight: '30px',
+              }}>
+                Dashboard
+              </Link>
+
+              <button
+                onClick={async () => {
+                  const supabaseClient = createClient()
+                  await supabaseClient.auth.signOut()
+                  window.location.href = '/auth'
+                }}
+                style={{
+                  background: 'none',
                   border: '1px solid #2a3340',
-                  borderRadius: '999px',
-                  padding: '4px 12px',
-                  maxWidth: '140px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {userEmail.split('@')[0]}
-                </span>
-
-                <Link href="/dashboard" style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '13px',
+                  borderRadius: '8px',
+                  height: '30px',
+                  padding: '0 14px',
+                  fontSize: '12px',
                   color: '#8b96a5',
-                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  fontFamily: "'Inter', sans-serif",
                   whiteSpace: 'nowrap',
-                }}>
-                  Dashboard
-                </Link>
-
-                <button
-                  onClick={async () => {
-                    const supabaseClient = createClient()
-                    await supabaseClient.auth.signOut()
-                    window.location.href = '/auth'
-                  }}
-                  style={{
-                    background: 'none',
-                    border: '1px solid #2a3340',
-                    borderRadius: '8px',
-                    padding: '6px 14px',
-                    fontSize: '12px',
-                    color: '#8b96a5',
-                    cursor: 'pointer',
-                    fontFamily: "'Inter', sans-serif",
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  Sign out
-                </button>
-              </>
-            )}
-          </div>
+                  lineHeight: '1',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
