@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import Parser from 'rss-parser'
 import { createClient } from '@supabase/supabase-js'
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { RSS_SOURCES } from '@/lib/rss-sources'
 
 const supabaseAdmin = createClient(
@@ -9,7 +9,10 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const openrouter = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+})
 
 const parser = new Parser({
   timeout: 10000,
@@ -74,13 +77,13 @@ Generate:
 
 difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and assumed PM experience needed.`
 
-    const msg = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+    const msg = await openrouter.chat.completions.create({
+      model: 'nousresearch/hermes-3-llama-3.1-405b:free',
       max_tokens: 600,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const text = msg.content[0].type === 'text' ? msg.content[0].text : ''
+    const text = msg.choices[0]?.message?.content ?? ''
     const json = JSON.parse(text.trim())
     return json
   } catch {
