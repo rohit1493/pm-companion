@@ -78,7 +78,7 @@ Generate:
 difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and assumed PM experience needed.`
 
     const msg = await openrouter.chat.completions.create({
-      model: 'nousresearch/hermes-3-llama-3.1-405b:free',
+      model: 'meta-llama/llama-3.1-8b-instruct:free',
       max_tokens: 600,
       messages: [{ role: 'user', content: prompt }],
     })
