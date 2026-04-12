@@ -114,21 +114,59 @@ function CheckCard({
       onClick={onClick}
       aria-pressed={selected}
       style={{
-        padding: '10px 18px',
-        borderRadius: '10px',
-        border: `1.5px solid ${selected ? 'var(--indigo)' : 'var(--border)'}`,
-        background: selected ? '#1a2332' : '#121821',
-        color: selected ? 'var(--indigo)' : 'var(--text-secondary)',
-        fontFamily: "'Inter', sans-serif",
-        fontSize: '14px',
-        fontWeight: selected ? 500 : 400,
-        cursor: 'pointer',
-        outline: 'none',
-        transition: 'all 180ms ease',
+        width: '100%',
         textAlign: 'left',
+        padding: '18px 20px',
+        background: selected ? '#1a2332' : '#121821',
+        border: `1.5px solid ${selected ? 'var(--indigo)' : 'var(--border)'}`,
+        borderRadius: '12px',
+        cursor: 'pointer',
+        transition: 'all 200ms ease',
+        outline: 'none',
+        boxShadow: selected ? '0 0 0 3px rgba(255,107,53,0.08)' : 'none',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '14px',
+      }}
+      onMouseEnter={(e) => {
+        if (!selected) {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = '#ffb89a'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!selected) {
+          (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)'
+        }
       }}
     >
-      {selected ? '✓ ' : ''}{label}
+      {/* Checkbox indicator */}
+      <div style={{
+        width: '20px',
+        height: '20px',
+        borderRadius: '5px',
+        border: `2px solid ${selected ? 'var(--indigo)' : '#2a3340'}`,
+        background: selected ? 'var(--indigo)' : 'transparent',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 200ms ease',
+      }}>
+        {selected && (
+          <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+            <path d="M1 4l3 3 6-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </div>
+      <span style={{
+        fontFamily: "'Inter', sans-serif",
+        fontSize: '15px',
+        fontWeight: selected ? 500 : 400,
+        color: selected ? '#f6fafe' : 'var(--text-secondary)',
+        transition: 'color 200ms ease',
+      }}>
+        {label}
+      </span>
     </button>
   )
 }
@@ -596,7 +634,7 @@ export default function OnboardingFlow() {
               title="Where do you want to improve?"
               sub="Optional — pick any that apply."
             />
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {WEAK_AREA_OPTIONS.map((area) => (
                 <CheckCard
                   key={area}
