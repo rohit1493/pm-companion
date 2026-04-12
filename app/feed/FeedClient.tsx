@@ -750,18 +750,43 @@ export default function FeedClient() {
 
             {/* SCANNER VIEW */}
             {scannerData && (
-              <div style={{ background: '#121821', border: '1px solid #2a3340', borderRadius: '14px', overflow: 'hidden' }}>
-                {scannerData.articles.length === 0 ? (
-                  <div style={{ padding: '60px 20px', textAlign: 'center', color: '#6b7685' }}>
-                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px' }}>No articles yet. Check back soon.</p>
+              <>
+                {/* Build your path CTA */}
+                <Link href="/onboarding" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  background: 'rgba(255,107,53,0.08)',
+                  border: '1px solid rgba(255,107,53,0.25)',
+                  borderRadius: '14px',
+                  marginBottom: '16px',
+                  textDecoration: 'none',
+                }}>
+                  <div>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: '#ff6b35', marginBottom: '2px' }}>
+                      Build your personalised path
+                    </p>
+                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: '#8b96a5' }}>
+                      Answer 3 questions → get a curated 10-article PM path
+                    </p>
                   </div>
-                ) : (
-                  scannerData.articles.map((article) => (
-                    <ScannerCard key={article.id} article={article} />
-                  ))
-                )}
-              </div>
+                  <span style={{ color: '#ff6b35', fontSize: '18px', flexShrink: 0, marginLeft: '12px' }}>→</span>
+                </Link>
+
+                <div style={{ background: '#121821', border: '1px solid #2a3340', borderRadius: '14px', overflow: 'hidden' }}>
+                  {scannerData.articles.length === 0 ? (
+                    <div style={{ padding: '60px 20px', textAlign: 'center', color: '#6b7685' }}>
+                      <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px' }}>No articles yet. Check back soon.</p>
+                    </div>
+                  ) : (
+                    scannerData.articles.map((article) => (
+                      <ScannerCard key={article.id} article={article} />
+                    ))
+                  )}
+                </div>
+              </>
             )}
           </>
         )}
