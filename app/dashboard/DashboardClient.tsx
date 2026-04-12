@@ -78,6 +78,7 @@ export default function DashboardClient() {
   const [userEmail, setUserEmail] = useState('')
   const [userId, setUserId] = useState('')
   const [copyToast, setCopyToast] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/dashboard')
@@ -112,16 +113,39 @@ export default function DashboardClient() {
           width: '100%',
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 20px',
+          padding: '0 16px',
           height: '56px',
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
         }}>
-          {/* Left — Logo */}
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
-            PM Dojo
-          </span>
+          {/* Left — Hamburger + Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Menu"
+              aria-expanded={menuOpen}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                outline: 'none',
+                borderRadius: '6px',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none' }} />
+              <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'opacity 200ms ease', opacity: menuOpen ? 0 : 1 }} />
+              <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none' }} />
+            </button>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
+              PM Dojo
+            </span>
+          </div>
 
           {/* Centre — Tab nav */}
           <div style={{
@@ -130,104 +154,112 @@ export default function DashboardClient() {
             background: '#0b0f14',
             border: '1px solid #2a3340',
             borderRadius: '999px',
-            padding: '4px',
+            padding: '3px',
             gap: '2px',
           }}>
-            {/* Feed tab — CTA to go back */}
-            <Link href="/feed" style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '13px',
-              fontWeight: 500,
-              color: '#8b96a5',
-              textDecoration: 'none',
-              borderRadius: '999px',
-              padding: '5px 16px',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'color 150ms ease, background 150ms ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#f6fafe'
-              e.currentTarget.style.background = '#1a2332'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#8b96a5'
-              e.currentTarget.style.background = 'transparent'
-            }}
-            >
-              {/* Animated arrow nudge */}
-              <span style={{ animation: 'nudgeLeft 1.8s ease-in-out infinite', display: 'inline-block' }}>←</span>
+            <Link href="/feed" className="dash-nav-tab dash-nav-link">
+              <span className="dash-nudge-arrow">←</span>
               Feed
             </Link>
-            {/* Dashboard tab — active */}
-            <span style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#f6fafe',
-              background: '#ff6b35',
-              borderRadius: '999px',
-              padding: '5px 16px',
-              whiteSpace: 'nowrap',
-            }}>
+            <span className="dash-nav-tab dash-nav-active">
               Dashboard
             </span>
           </div>
 
-          {/* Right — User + sign out */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-end' }}>
-            <span className="nav-username" style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '12px',
-              color: '#6b7685',
-              background: '#161e28',
-              border: '1px solid #2a3340',
-              borderRadius: '999px',
-              padding: '5px 12px',
-              maxWidth: '120px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
-              {userEmail.split('@')[0]}
-            </span>
-            <button
-              onClick={async () => {
-                const supabase = createClient()
-                await supabase.auth.signOut()
-                window.location.href = '/auth'
-              }}
-              style={{
-                background: 'none',
-                border: '1px solid #2a3340',
-                borderRadius: '8px',
-                padding: '5px 12px',
-                fontSize: '12px',
-                color: '#6b7685',
-                cursor: 'pointer',
-                fontFamily: "'Inter', sans-serif",
-                outline: 'none',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Sign out
-            </button>
-          </div>
+          {/* Right — empty (balance grid) */}
+          <div />
         </div>
 
+        {/* Hamburger dropdown */}
+        {menuOpen && (
+          <>
+            <div
+              onClick={() => setMenuOpen(false)}
+              style={{ position: 'fixed', inset: 0, top: '56px', zIndex: 9 }}
+            />
+            <div style={{
+              position: 'absolute',
+              top: '60px',
+              left: '16px',
+              background: '#161e28',
+              border: '1px solid #2a3340',
+              borderRadius: '12px',
+              padding: '8px',
+              zIndex: 11,
+              minWidth: '200px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}>
+              {userEmail && (
+                <div style={{ padding: '10px 12px', borderBottom: '1px solid #2a3340', marginBottom: '4px' }}>
+                  <p style={{ fontSize: '11px', color: '#6b7685', fontFamily: "'Inter', sans-serif", marginBottom: '3px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Signed in as</p>
+                  <p style={{ fontSize: '13px', color: '#f6fafe', fontFamily: "'Inter', sans-serif", fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</p>
+                </div>
+              )}
+              <button
+                onClick={async () => {
+                  const supabase = createClient()
+                  await supabase.auth.signOut()
+                  window.location.href = '/auth'
+                }}
+                className="menu-signout-btn"
+              >
+                Sign out
+              </button>
+            </div>
+          </>
+        )}
+
         <style>{`
-          @keyframes navPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
-          }
           @keyframes nudgeLeft {
             0%, 100% { transform: translateX(0); }
             50% { transform: translateX(-3px); }
           }
-          @media (max-width: 540px) {
-            .nav-username { display: none !important; }
+          .dash-nav-tab {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 999px;
+            padding: 5px 14px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+          }
+          .dash-nav-active {
+            color: #f6fafe;
+            background: #ff6b35;
+            font-weight: 600;
+          }
+          .dash-nav-link {
+            color: #8b96a5;
+            background: transparent;
+            transition: color 150ms ease, background 150ms ease;
+          }
+          .dash-nav-link:hover {
+            color: #f6fafe;
+            background: #1a2332;
+          }
+          .dash-nudge-arrow {
+            display: inline-block;
+            animation: nudgeLeft 1.8s ease-in-out infinite;
+          }
+          .menu-signout-btn {
+            width: 100%;
+            background: none;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #f87171;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            text-align: left;
+            transition: background 150ms ease;
+          }
+          .menu-signout-btn:hover { background: #1a2332; }
+          @media (max-width: 480px) {
+            .dash-nav-tab { padding: 5px 10px; font-size: 12px; }
           }
         `}</style>
       </header>

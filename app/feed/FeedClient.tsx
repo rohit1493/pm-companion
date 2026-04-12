@@ -348,6 +348,7 @@ export default function FeedClient() {
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null)
   const [userEmail, setUserEmail] = useState('')
   const [error, setError] = useState('')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const loadFeed = useCallback(async () => {
     setPhase('loading')
@@ -438,16 +439,39 @@ export default function FeedClient() {
           width: '100%',
           maxWidth: '1200px',
           margin: '0 auto',
-          padding: '0 20px',
+          padding: '0 16px',
           height: '56px',
           display: 'grid',
           gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
         }}>
-          {/* Left — Logo */}
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
-            PM Dojo
-          </span>
+          {/* Left — Hamburger + Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-label="Menu"
+              aria-expanded={menuOpen}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '6px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                outline: 'none',
+                borderRadius: '6px',
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(45deg) translate(4px, 4px)' : 'none' }} />
+              <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'opacity 200ms ease', opacity: menuOpen ? 0 : 1 }} />
+              <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none' }} />
+            </button>
+            <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
+              PM Dojo
+            </span>
+          </div>
 
           {/* Centre — Tab nav */}
           <div style={{
@@ -466,23 +490,48 @@ export default function FeedClient() {
             </Link>
           </div>
 
-          {/* Right — User + sign out */}
-          {userEmail && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-              <span className="nav-username-pill">{userEmail.split('@')[0]}</span>
+          {/* Right — empty (balance grid) */}
+          <div />
+        </div>
+
+        {/* Hamburger dropdown */}
+        {menuOpen && (
+          <>
+            <div
+              onClick={() => setMenuOpen(false)}
+              style={{ position: 'fixed', inset: 0, top: '56px', zIndex: 9 }}
+            />
+            <div style={{
+              position: 'absolute',
+              top: '60px',
+              left: '16px',
+              background: '#161e28',
+              border: '1px solid #2a3340',
+              borderRadius: '12px',
+              padding: '8px',
+              zIndex: 11,
+              minWidth: '200px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}>
+              {userEmail && (
+                <div style={{ padding: '10px 12px', borderBottom: '1px solid #2a3340', marginBottom: '4px' }}>
+                  <p style={{ fontSize: '11px', color: '#6b7685', fontFamily: "'Inter', sans-serif", marginBottom: '3px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Signed in as</p>
+                  <p style={{ fontSize: '13px', color: '#f6fafe', fontFamily: "'Inter', sans-serif", fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</p>
+                </div>
+              )}
               <button
-                className="nav-signout"
                 onClick={async () => {
                   const supabaseClient = createClient()
                   await supabaseClient.auth.signOut()
                   window.location.href = '/auth'
                 }}
+                className="menu-signout-btn"
               >
                 Sign out
               </button>
             </div>
-          )}
-        </div>
+          </>
+        )}
 
         <style>{`
           @keyframes navPulse {
@@ -523,32 +572,21 @@ export default function FeedClient() {
             flex-shrink: 0;
             animation: navPulse 2s ease-in-out infinite;
           }
-          .nav-username-pill {
-            font-family: 'Inter', sans-serif;
-            font-size: 12px;
-            color: #6b7685;
-            background: #161e28;
-            border: 1px solid #2a3340;
-            border-radius: 999px;
-            padding: 5px 12px;
-            max-width: 110px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-          .nav-signout {
+          .menu-signout-btn {
+            width: 100%;
             background: none;
-            border: 1px solid #2a3340;
+            border: none;
             border-radius: 8px;
-            padding: 5px 10px;
-            font-size: 12px;
-            color: #6b7685;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #f87171;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
-            white-space: nowrap;
+            text-align: left;
+            transition: background 150ms ease;
           }
-          @media (max-width: 540px) {
-            .nav-username-pill { display: none; }
+          .menu-signout-btn:hover { background: #1a2332; }
+          @media (max-width: 480px) {
             .nav-tab { padding: 5px 10px; font-size: 12px; }
           }
         `}</style>
