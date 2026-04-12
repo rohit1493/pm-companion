@@ -109,24 +109,38 @@ export default function DashboardClient() {
       {/* Header */}
       <header style={{ background: '#121821', borderBottom: '1px solid #2a3340', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{
-          maxWidth: '640px',
+          width: '100%',
+          maxWidth: '1200px',
           margin: '0 auto',
           padding: '0 20px',
-          height: '52px',
+          height: '56px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}>
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', color: '#f6fafe' }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', flexShrink: 0 }}>
             PM Dojo
           </span>
           <nav style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <Link href="/feed" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none' }}>
-              Feed
-            </Link>
-            <span style={{ fontSize: '13px', color: '#6b7685' }}>
+            {/* Username pill */}
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '13px',
+              color: '#6b7685',
+              background: '#161e28',
+              border: '1px solid #2a3340',
+              borderRadius: '999px',
+              padding: '4px 12px',
+              maxWidth: '140px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}>
               {userEmail.split('@')[0]}
             </span>
+            <Link href="/feed" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Feed
+            </Link>
             <button
               onClick={async () => {
                 const supabase = createClient()
@@ -137,12 +151,13 @@ export default function DashboardClient() {
                 background: 'none',
                 border: '1px solid #2a3340',
                 borderRadius: '8px',
-                padding: '5px 12px',
+                padding: '6px 14px',
                 fontSize: '12px',
                 color: '#8b96a5',
                 cursor: 'pointer',
                 fontFamily: "'Inter', sans-serif",
                 outline: 'none',
+                whiteSpace: 'nowrap',
               }}
             >
               Sign out

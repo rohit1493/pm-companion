@@ -434,16 +434,52 @@ export default function FeedClient() {
         top: 0,
         zIndex: 10,
       }}>
-        <div style={{ maxWidth: '640px', margin: '0 auto', padding: '0 20px', height: '52px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', color: '#f6fafe' }}>
+        <div style={{
+          width: '100%',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 20px',
+          height: '56px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          {/* Logo */}
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', flexShrink: 0 }}>
             PM Dojo
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+
+          {/* Right side nav */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {userEmail && (
               <>
-                <Link href="/dashboard" style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5', textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                {/* Username pill */}
+                <span style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '13px',
+                  color: '#6b7685',
+                  background: '#161e28',
+                  border: '1px solid #2a3340',
+                  borderRadius: '999px',
+                  padding: '4px 12px',
+                  maxWidth: '140px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {userEmail.split('@')[0]}
+                </span>
+
+                <Link href="/dashboard" style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '13px',
+                  color: '#8b96a5',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                }}>
                   Dashboard
                 </Link>
+
                 <button
                   onClick={async () => {
                     const supabaseClient = createClient()
@@ -454,7 +490,7 @@ export default function FeedClient() {
                     background: 'none',
                     border: '1px solid #2a3340',
                     borderRadius: '8px',
-                    padding: '5px 12px',
+                    padding: '6px 14px',
                     fontSize: '12px',
                     color: '#8b96a5',
                     cursor: 'pointer',
