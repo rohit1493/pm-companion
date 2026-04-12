@@ -10,8 +10,8 @@ const supabaseAdmin = createClient(
 )
 
 const openrouter = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: 'https://api.groq.com/openai/v1',
 })
 
 const parser = new Parser({
@@ -78,7 +78,7 @@ Generate:
 difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and assumed PM experience needed.`
 
     const msg = await openrouter.chat.completions.create({
-      model: 'meta-llama/llama-3.1-8b-instruct:free',
+      model: 'llama-3.1-8b-instant',
       max_tokens: 600,
       messages: [{ role: 'user', content: prompt }],
     })
