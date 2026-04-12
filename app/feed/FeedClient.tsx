@@ -380,12 +380,15 @@ export default function FeedClient() {
       if (sessionId) {
         // Await link-profile before loading feed so path is ready on first login
         try {
-          await fetch('/api/link-profile', {
+          const linkRes = await fetch('/api/link-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session_id: sessionId }),
           })
-          localStorage.removeItem('pm_session_id')
+          // Only clear session_id on definitive success — keeps it for retry on 401/5xx
+          if (linkRes.ok) {
+            localStorage.removeItem('pm_session_id')
+          }
         } catch {}
       }
 

@@ -28,12 +28,14 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // Get user profile (maybeSingle = no error when 0 rows)
-  const { data: profile } = await supabaseAdmin
+  // Get user profile — use limit(1) to handle edge case of multiple linked rows
+  const { data: profiles } = await supabaseAdmin
     .from('user_profiles')
     .select('archetype, archetype_display, archetype_tagline, sequence')
     .eq('user_id', user.id)
-    .maybeSingle()
+    .order('created_at', { ascending: false })
+    .limit(1)
+  const profile = profiles?.[0] ?? null
 
   const isScanner = !profile?.archetype || profile.archetype === 'scanner'
 

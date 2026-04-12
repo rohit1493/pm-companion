@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
     .from('user_profiles')
     .select('id, sequence, archetype')
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
+    .maybeSingle()
 
   if (existing) {
     // Already linked — check if session profile has a better (non-scanner) archetype
@@ -77,14 +78,33 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Fetch the newly linked profile to get sequence
+  // Verify the update actually linked a row (Supabase doesn't error on 0 rows updated)
   const { data: linked } = await supabaseAdmin
     .from('user_profiles')
     .select('sequence, archetype')
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
+    .maybeSingle()
 
-  if (linked?.sequence) {
+  if (!linked) {
+    // 0 rows were updated — session_id may not match. Try finding by session_id directly
+    // and set user_id (handles case where row was already linked by a concurrent call)
+    const { data: sessionRow } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, sequence, archetype, user_id')
+      .eq('session_id', session_id)
+      .limit(1)
+      .maybeSingle()
+
+    if (sessionRow && !sessionRow.user_id) {
+      // Row exists but couldn't be updated — return error so client retains session_id
+      return NextResponse.json({ error: 'Failed to link profile' }, { status: 500 })
+    }
+    // Either row doesn't exist or already has user_id — nothing to do
+    return NextResponse.json({ linked: true })
+  }
+
+  if (linked.sequence) {
     await ensureUserProgress(user.id, linked.sequence, linked.archetype)
   }
 
