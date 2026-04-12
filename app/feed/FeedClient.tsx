@@ -445,7 +445,7 @@ export default function FeedClient() {
           alignItems: 'center',
         }}>
           {/* Left — Logo */}
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe' }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
             PM Dojo
           </span>
 
@@ -456,93 +456,26 @@ export default function FeedClient() {
             background: '#0b0f14',
             border: '1px solid #2a3340',
             borderRadius: '999px',
-            padding: '4px',
+            padding: '3px',
             gap: '2px',
           }}>
-            {/* Feed tab — active */}
-            <span style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#f6fafe',
-              background: '#ff6b35',
-              borderRadius: '999px',
-              padding: '5px 16px',
-              whiteSpace: 'nowrap',
-            }}>
-              Feed
-            </span>
-            {/* Dashboard tab — nudge with pulsing dot */}
-            <Link href="/dashboard" style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '13px',
-              fontWeight: 500,
-              color: '#8b96a5',
-              textDecoration: 'none',
-              borderRadius: '999px',
-              padding: '5px 16px',
-              whiteSpace: 'nowrap',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'color 150ms ease, background 150ms ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#f6fafe'
-              e.currentTarget.style.background = '#1a2332'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#8b96a5'
-              e.currentTarget.style.background = 'transparent'
-            }}
-            >
+            <span className="nav-tab nav-tab-active">Feed</span>
+            <Link href="/dashboard" className="nav-tab nav-tab-link">
               Dashboard
-              {/* Pulsing streak nudge dot */}
-              <span style={{
-                width: '7px',
-                height: '7px',
-                borderRadius: '50%',
-                background: '#ff6b35',
-                flexShrink: 0,
-                animation: 'navPulse 2s ease-in-out infinite',
-              }} />
+              <span className="nav-pulse-dot" />
             </Link>
           </div>
 
           {/* Right — User + sign out */}
           {userEmail && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-end' }}>
-              <span style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '12px',
-                color: '#6b7685',
-                background: '#161e28',
-                border: '1px solid #2a3340',
-                borderRadius: '999px',
-                padding: '5px 12px',
-                maxWidth: '120px',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
-                {userEmail.split('@')[0]}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+              <span className="nav-username-pill">{userEmail.split('@')[0]}</span>
               <button
+                className="nav-signout"
                 onClick={async () => {
                   const supabaseClient = createClient()
                   await supabaseClient.auth.signOut()
                   window.location.href = '/auth'
-                }}
-                style={{
-                  background: 'none',
-                  border: '1px solid #2a3340',
-                  borderRadius: '8px',
-                  padding: '5px 12px',
-                  fontSize: '12px',
-                  color: '#6b7685',
-                  cursor: 'pointer',
-                  fontFamily: "'Inter', sans-serif",
-                  whiteSpace: 'nowrap',
                 }}
               >
                 Sign out
@@ -554,10 +487,69 @@ export default function FeedClient() {
         <style>{`
           @keyframes navPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
+            50% { opacity: 0.3; transform: scale(0.6); }
           }
-          @media (max-width: 480px) {
-            .nav-username { display: none !important; }
+          .nav-tab {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 999px;
+            padding: 5px 14px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color 150ms ease, background 150ms ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .nav-tab-active {
+            color: #f6fafe;
+            background: #ff6b35;
+            font-weight: 600;
+          }
+          .nav-tab-link {
+            color: #8b96a5;
+            background: transparent;
+          }
+          .nav-tab-link:hover {
+            color: #f6fafe;
+            background: #1a2332;
+          }
+          .nav-pulse-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #ff6b35;
+            flex-shrink: 0;
+            animation: navPulse 2s ease-in-out infinite;
+          }
+          .nav-username-pill {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            color: #6b7685;
+            background: #161e28;
+            border: 1px solid #2a3340;
+            border-radius: 999px;
+            padding: 5px 12px;
+            max-width: 110px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .nav-signout {
+            background: none;
+            border: 1px solid #2a3340;
+            border-radius: 8px;
+            padding: 5px 10px;
+            font-size: 12px;
+            color: #6b7685;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap;
+          }
+          @media (max-width: 540px) {
+            .nav-username-pill { display: none; }
+            .nav-tab { padding: 5px 10px; font-size: 12px; }
           }
         `}</style>
       </header>

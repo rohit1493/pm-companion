@@ -119,7 +119,7 @@ export default function DashboardClient() {
           alignItems: 'center',
         }}>
           {/* Left — Logo */}
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe' }}>
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', whiteSpace: 'nowrap' }}>
             PM Dojo
           </span>
 
@@ -178,7 +178,7 @@ export default function DashboardClient() {
 
           {/* Right — User + sign out */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-end' }}>
-            <span style={{
+            <span className="nav-username" style={{
               fontFamily: "'Inter', sans-serif",
               fontSize: '12px',
               color: '#6b7685',
@@ -226,7 +226,7 @@ export default function DashboardClient() {
             0%, 100% { transform: translateX(0); }
             50% { transform: translateX(-3px); }
           }
-          @media (max-width: 480px) {
+          @media (max-width: 540px) {
             .nav-username { display: none !important; }
           }
         `}</style>
