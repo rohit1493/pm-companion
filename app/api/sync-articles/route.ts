@@ -9,11 +9,6 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const openrouter = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: 'https://api.groq.com/openai/v1',
-})
-
 const parser = new Parser({
   timeout: 10000,
   headers: { 'User-Agent': 'PM-Dojo/1.0' },
@@ -77,6 +72,10 @@ Generate:
 
 difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and assumed PM experience needed.`
 
+    const openrouter = new OpenAI({
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: 'https://api.groq.com/openai/v1',
+    })
     const msg = await openrouter.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       max_tokens: 600,
