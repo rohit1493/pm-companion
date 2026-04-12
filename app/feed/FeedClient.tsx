@@ -440,18 +440,78 @@ export default function FeedClient() {
           margin: '0 auto',
           padding: '0 20px',
           height: '56px',
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
-          justifyContent: 'space-between',
         }}>
-          {/* Logo */}
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', flexShrink: 0 }}>
+          {/* Left — Logo */}
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe' }}>
             PM Dojo
           </span>
 
-          {/* Right side nav */}
+          {/* Centre — Tab nav */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#0b0f14',
+            border: '1px solid #2a3340',
+            borderRadius: '999px',
+            padding: '4px',
+            gap: '2px',
+          }}>
+            {/* Feed tab — active */}
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#f6fafe',
+              background: '#ff6b35',
+              borderRadius: '999px',
+              padding: '5px 16px',
+              whiteSpace: 'nowrap',
+            }}>
+              Feed
+            </span>
+            {/* Dashboard tab — nudge with pulsing dot */}
+            <Link href="/dashboard" style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '13px',
+              fontWeight: 500,
+              color: '#8b96a5',
+              textDecoration: 'none',
+              borderRadius: '999px',
+              padding: '5px 16px',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'color 150ms ease, background 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#f6fafe'
+              e.currentTarget.style.background = '#1a2332'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#8b96a5'
+              e.currentTarget.style.background = 'transparent'
+            }}
+            >
+              Dashboard
+              {/* Pulsing streak nudge dot */}
+              <span style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '50%',
+                background: '#ff6b35',
+                flexShrink: 0,
+                animation: 'navPulse 2s ease-in-out infinite',
+              }} />
+            </Link>
+          </div>
+
+          {/* Right — User + sign out */}
           {userEmail && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-end' }}>
               <span style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '12px',
@@ -460,24 +520,13 @@ export default function FeedClient() {
                 border: '1px solid #2a3340',
                 borderRadius: '999px',
                 padding: '5px 12px',
-                maxWidth: '140px',
+                maxWidth: '120px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
               }}>
                 {userEmail.split('@')[0]}
               </span>
-
-              <Link href="/dashboard" style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: '13px',
-                color: '#8b96a5',
-                textDecoration: 'none',
-                whiteSpace: 'nowrap',
-              }}>
-                Dashboard
-              </Link>
-
               <button
                 onClick={async () => {
                   const supabaseClient = createClient()
@@ -490,11 +539,10 @@ export default function FeedClient() {
                   borderRadius: '8px',
                   padding: '5px 12px',
                   fontSize: '12px',
-                  color: '#8b96a5',
+                  color: '#6b7685',
                   cursor: 'pointer',
                   fontFamily: "'Inter', sans-serif",
                   whiteSpace: 'nowrap',
-                  minHeight: 'unset',
                 }}
               >
                 Sign out
@@ -502,6 +550,16 @@ export default function FeedClient() {
             </div>
           )}
         </div>
+
+        <style>{`
+          @keyframes navPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+          }
+          @media (max-width: 480px) {
+            .nav-username { display: none !important; }
+          }
+        `}</style>
       </header>
 
       <main style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px 80px' }}>

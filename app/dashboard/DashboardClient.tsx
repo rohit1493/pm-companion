@@ -114,14 +114,70 @@ export default function DashboardClient() {
           margin: '0 auto',
           padding: '0 20px',
           height: '56px',
-          display: 'flex',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
           alignItems: 'center',
-          justifyContent: 'space-between',
         }}>
-          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe', flexShrink: 0 }}>
+          {/* Left — Logo */}
+          <span style={{ fontFamily: "'Manrope', sans-serif", fontSize: '18px', fontWeight: 600, color: '#f6fafe' }}>
             PM Dojo
           </span>
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+          {/* Centre — Tab nav */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            background: '#0b0f14',
+            border: '1px solid #2a3340',
+            borderRadius: '999px',
+            padding: '4px',
+            gap: '2px',
+          }}>
+            {/* Feed tab — CTA to go back */}
+            <Link href="/feed" style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '13px',
+              fontWeight: 500,
+              color: '#8b96a5',
+              textDecoration: 'none',
+              borderRadius: '999px',
+              padding: '5px 16px',
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'color 150ms ease, background 150ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#f6fafe'
+              e.currentTarget.style.background = '#1a2332'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#8b96a5'
+              e.currentTarget.style.background = 'transparent'
+            }}
+            >
+              {/* Animated arrow nudge */}
+              <span style={{ animation: 'nudgeLeft 1.8s ease-in-out infinite', display: 'inline-block' }}>←</span>
+              Feed
+            </Link>
+            {/* Dashboard tab — active */}
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '13px',
+              fontWeight: 600,
+              color: '#f6fafe',
+              background: '#ff6b35',
+              borderRadius: '999px',
+              padding: '5px 16px',
+              whiteSpace: 'nowrap',
+            }}>
+              Dashboard
+            </span>
+          </div>
+
+          {/* Right — User + sign out */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'flex-end' }}>
             <span style={{
               fontFamily: "'Inter', sans-serif",
               fontSize: '12px',
@@ -130,22 +186,13 @@ export default function DashboardClient() {
               border: '1px solid #2a3340',
               borderRadius: '999px',
               padding: '5px 12px',
-              maxWidth: '140px',
+              maxWidth: '120px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}>
               {userEmail.split('@')[0]}
             </span>
-            <Link href="/feed" style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '13px',
-              color: '#8b96a5',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}>
-              Feed
-            </Link>
             <button
               onClick={async () => {
                 const supabase = createClient()
@@ -158,18 +205,31 @@ export default function DashboardClient() {
                 borderRadius: '8px',
                 padding: '5px 12px',
                 fontSize: '12px',
-                color: '#8b96a5',
+                color: '#6b7685',
                 cursor: 'pointer',
                 fontFamily: "'Inter', sans-serif",
                 outline: 'none',
                 whiteSpace: 'nowrap',
-                minHeight: 'unset',
               }}
             >
               Sign out
             </button>
-          </nav>
+          </div>
         </div>
+
+        <style>{`
+          @keyframes navPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+          }
+          @keyframes nudgeLeft {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-3px); }
+          }
+          @media (max-width: 480px) {
+            .nav-username { display: none !important; }
+          }
+        `}</style>
       </header>
 
       <main style={{ maxWidth: '640px', margin: '0 auto', padding: '24px 16px 80px' }}>
