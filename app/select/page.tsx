@@ -20,7 +20,7 @@ export default function SelectPage() {
   function handleConfirm() {
     if (!selected) return
     sessionStorage.setItem('pmd_fighter', selected)
-    router.push('/auth')
+    router.push('/onboarding')
   }
 
   return (
