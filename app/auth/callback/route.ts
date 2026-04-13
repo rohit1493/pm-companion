@@ -3,11 +3,9 @@ import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  const rawNext = searchParams.get('next') ?? '/feed'
-  // Only allow relative paths to prevent open redirect
-  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/feed'
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
+  const next = requestUrl.searchParams.get('next') || '/feed'
 
   if (code) {
     const cookieStore = await cookies()
@@ -25,11 +23,8 @@ export async function GET(request: NextRequest) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
+    await supabase.auth.exchangeCodeForSession(code)
   }
 
-  return NextResponse.redirect(`${origin}/auth?error=auth_failed`)
+  return NextResponse.redirect(new URL(next, request.url))
 }

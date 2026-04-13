@@ -85,7 +85,7 @@ export default function Home() {
           gap: '16px',
         }}>
           <Link
-            href="/select"
+            href="/onboarding"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
