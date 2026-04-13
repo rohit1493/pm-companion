@@ -28,12 +28,14 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  // User profile (with archetype fields)
-  const { data: profile } = await supabaseAdmin
+  // User profile (with archetype fields) — use limit(1) to handle edge case of multiple linked rows
+  const { data: profileRows } = await supabaseAdmin
     .from('user_profiles')
     .select('experience_level, primary_goal, topics, archetype, archetype_display, archetype_tagline, sequence, streak, streak_last_updated')
     .eq('user_id', user.id)
-    .maybeSingle()
+    .order('created_at', { ascending: false })
+    .limit(1)
+  const profile = profileRows?.[0] ?? null
 
   // Path progress from user_progress
   const { data: progressRows } = await supabaseAdmin
@@ -75,12 +77,17 @@ export async function GET() {
   const totalAssigned = totalInPath > 0 ? totalInPath : (allDays || []).length
 
   // Streak calculation — use user_profiles.streak for path users, daily_articles for legacy
+  const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000)
   let streak = 0
-  const readToday = readDays[0]?.assigned_date === today
+  let readToday = readDays[0]?.assigned_date === today
 
   if (profile?.archetype) {
     // Path users: streak is managed by quiz completion in user_profiles
-    streak = profile.streak || 0
+    // Apply decay: if last quiz was >48hr ago, streak has lapsed
+    const lastUpdated = profile.streak_last_updated ? new Date(profile.streak_last_updated) : null
+    const streakActive = lastUpdated && lastUpdated > fortyEightHoursAgo
+    streak = streakActive ? (profile.streak || 0) : 0
+    readToday = !!lastUpdated && lastUpdated.toISOString().split('T')[0] === today
   } else {
     // Legacy users: calculate from daily_articles
     let checkDate = readToday

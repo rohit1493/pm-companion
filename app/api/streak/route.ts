@@ -37,8 +37,12 @@ export async function GET() {
     .maybeSingle()
 
   if (profile?.archetype) {
-    const today = new Date().toISOString().split('T')[0]
-    const lastUpdated = profile.streak_last_updated ? profile.streak_last_updated.split('T')[0] : null
+    const now = new Date()
+    const today = now.toISOString().split('T')[0]
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
+    const lastUpdated = profile.streak_last_updated ? new Date(profile.streak_last_updated) : null
+    const streakActive = lastUpdated && lastUpdated > fortyEightHoursAgo
+    const readToday = !!lastUpdated && lastUpdated.toISOString().split('T')[0] === today
 
     const { count: completedCount } = await supabaseAdmin
       .from('user_progress')
@@ -47,8 +51,8 @@ export async function GET() {
       .eq('completed', true)
 
     return NextResponse.json({
-      streak: profile.streak || 0,
-      readToday: lastUpdated === today,
+      streak: streakActive ? (profile.streak || 0) : 0,
+      readToday,
       totalRead: completedCount || 0,
     })
   }

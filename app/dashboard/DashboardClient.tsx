@@ -266,6 +266,7 @@ export default function DashboardClient() {
           @media (max-width: 540px) {
             .nav-logo { display: none; }
             .dash-nav-tab { padding: 6px 14px; font-size: 13px; }
+            .stat-value { font-size: 24px !important; }
           }
         `}</style>
       </header>
