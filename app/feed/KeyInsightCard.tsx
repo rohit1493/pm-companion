@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { analytics } from '@/lib/analytics'
 
 type QuizArticle = {
   id: string
@@ -17,6 +18,13 @@ export default function KeyInsightCard({
 }) {
   const withInsights = articles.filter((a) => a.key_insight)
   const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    if (withInsights.length > 0) {
+      analytics.keyInsightViewed(withInsights.length)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (withInsights.length === 0) {
     onDone()

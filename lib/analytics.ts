@@ -39,12 +39,25 @@ export function track(event: string, properties?: Record<string, string | number
 // --- Typed event helpers ---
 
 export const analytics = {
+  // Auth
+  signedUp: () =>
+    track('signed_up'),
+
+  signedIn: () =>
+    track('signed_in'),
+
+  // Onboarding
   onboardingStarted: () =>
     track('onboarding_started'),
 
   onboardingCompleted: (archetype: string, archetypeDisplay: string) =>
     track('onboarding_completed', { archetype, archetype_display: archetypeDisplay }),
 
+  // Feed
+  feedLoaded: (viewType: 'path' | 'scanner', archetype: string | null) =>
+    track('feed_loaded', { view_type: viewType, archetype: archetype ?? 'scanner' }),
+
+  // Article
   articleOpened: (articleId: string, articleTitle: string, position: number) =>
     track('article_opened', { article_id: articleId, article_title: articleTitle, position }),
 
@@ -54,18 +67,29 @@ export const analytics = {
   readGateFailed: (articleId: string, secondsSpent: number, secondsRemaining: number) =>
     track('read_gate_failed', { article_id: articleId, seconds_spent: secondsSpent, seconds_remaining: secondsRemaining }),
 
+  // Quiz
+  quizTriggered: (articleCount: number) =>
+    track('quiz_triggered', { article_count: articleCount }),
+
   quizStarted: (articleCount: number) =>
     track('quiz_started', { article_count: articleCount }),
 
   quizCompleted: (correct: number, total: number, score: number, newStreak: number) =>
     track('quiz_completed', { correct_answers: correct, total_questions: total, score_pct: score, new_streak: newStreak }),
 
-  signedUp: () =>
-    track('signed_up'),
+  // Key insight
+  keyInsightViewed: (articleCount: number) =>
+    track('key_insight_viewed', { article_count: articleCount }),
 
-  signedIn: () =>
-    track('signed_in'),
+  // Streak milestones
+  streakMilestone: (day: number) =>
+    track('streak_milestone', { day }),
 
+  // Path completion
+  pathComplete: (totalArticles: number, dojoScore: number | null) =>
+    track('path_complete', { total_articles: totalArticles, dojo_score: dojoScore }),
+
+  // Share
   streakShared: (streak: number) =>
     track('streak_shared', { streak }),
 }

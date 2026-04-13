@@ -31,7 +31,7 @@ export default function QuizCard({
   onReRead,
 }: {
   articleIds: string[]
-  onComplete: (results: { articleIds: string[]; correct: number; total: number; articles: QuizArticle[] }) => void
+  onComplete: (results: { articleIds: string[]; correct: number; total: number; articles: QuizArticle[]; newStreak: number }) => void
   onReRead?: () => void
 }) {
   const [questions, setQuestions] = useState<Question[]>([])
@@ -73,19 +73,20 @@ export default function QuizCard({
         }),
       })
       if (!res.ok) throw new Error('Save failed')
+      const resData = await res.json()
+      setSubmitting(false)
+      onComplete({
+        articleIds,
+        correct: finalCorrect,
+        total: questions.length,
+        articles,
+        newStreak: resData.streak ?? 0,
+      })
     } catch {
       setSubmitting(false)
       setFetchError(true)
       return
     }
-
-    setSubmitting(false)
-    onComplete({
-      articleIds,
-      correct: finalCorrect,
-      total: questions.length,
-      articles,
-    })
   }
 
   function handleAnswer(selected: string) {

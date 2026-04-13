@@ -68,6 +68,7 @@ type QuizResult = {
   correct: number
   total: number
   articles: { id: string; title: string; key_insight: string | null }[]
+  newStreak?: number
 }
 
 type FeedPhase = 'loading' | 'feed' | 'unlocking' | 'quiz' | 'insights'
@@ -364,6 +365,15 @@ export default function FeedClient() {
       const data = await res.json()
       setFeedData(data)
       setPhase('feed')
+      analytics.feedLoaded(data.viewType, data.viewType === 'path' ? (data.archetypeDisplay ?? null) : null)
+      if (data.viewType === 'path') {
+        // quiz banner appearing = quiz triggered
+        if (data.quizReady) analytics.quizTriggered(data.quizArticleIds?.length ?? 0)
+        // path complete
+        if (data.current === null && data.completedCount > 0 && data.completedCount === data.totalInPath) {
+          analytics.pathComplete(data.totalInPath, null)
+        }
+      }
     } catch {
       setError('Could not load your feed. Please refresh.')
       setPhase('feed')
@@ -416,11 +426,16 @@ export default function FeedClient() {
       .catch(() => { setPhase('feed') })
   }
 
-  function handleQuizComplete(result: QuizResult) {
+  function handleQuizComplete(result: QuizResult & { newStreak?: number }) {
     setQuizResult(result)
     setPhase('insights')
     const score = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0
-    analytics.quizCompleted(result.correct, result.total, score, 0)
+    const newStreak = result.newStreak ?? 0
+    analytics.quizCompleted(result.correct, result.total, score, newStreak)
+    // Streak milestones
+    if (newStreak === 1) analytics.streakMilestone(1)
+    if (newStreak === 3) analytics.streakMilestone(3)
+    if (newStreak === 7) analytics.streakMilestone(7)
   }
 
   function handleInsightsDone() {
