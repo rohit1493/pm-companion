@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import UnlockAnimation from './UnlockAnimation'
+import { analytics } from '@/lib/analytics'
 
 type Article = {
   id: string
@@ -85,8 +86,11 @@ export default function ArticleCard({
       if (data.passed) {
         setGateState('returned_pass')
         setShowUnlock(true)
+        analytics.readGatePassed(article.id, data.total_seconds || 0)
       } else {
         setGateState('returned_fail')
+        const remaining = Math.max(0, 30 - (data.total_seconds || 0))
+        analytics.readGateFailed(article.id, data.total_seconds || 0, remaining)
       }
       setTimeAccumulated(data.total_seconds || 0)
     } catch {
@@ -137,6 +141,7 @@ export default function ArticleCard({
   function handleReadClick() {
     window.open(article.url, '_blank', 'noopener,noreferrer')
     setGateState('reading')
+    analytics.articleOpened(article.id, article.title, row.position)
   }
 
   const hook = article.hooks?.[0] || null

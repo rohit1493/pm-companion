@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
+import { analytics } from '@/lib/analytics'
 
 type DashboardData = {
   streak: number
@@ -102,6 +103,7 @@ export default function DashboardClient() {
     navigator.clipboard.writeText(shareUrl).then(() => {
       setCopyToast(true)
       setTimeout(() => setCopyToast(false), 2500)
+      if (data) analytics.streakShared(data.streak)
     })
   }
 

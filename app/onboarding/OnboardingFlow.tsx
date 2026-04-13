@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { assignArchetype, type Archetype } from '@/lib/archetypes'
 import LoadingScreen from './LoadingScreen'
 import { createClient } from '@/lib/supabase-browser'
+import { analytics } from '@/lib/analytics'
 
 // --- HELPERS ---
 
@@ -437,6 +438,8 @@ type Experience = '0-2' | '3-5' | '5+' | ''
 export default function OnboardingFlow() {
   const router = useRouter()
 
+  useEffect(() => { analytics.onboardingStarted() }, [])
+
   // Answers
   const [goal, setGoal] = useState<Goal>('')
   const [target, setTarget] = useState<Target>('')
@@ -505,6 +508,7 @@ export default function OnboardingFlow() {
       // Store archetype locally
       localStorage.setItem('pm_archetype', archetype.key)
       localStorage.setItem('pm_goal', goal)
+      analytics.onboardingCompleted(archetype.key, archetype.display)
 
       // If user is already authenticated, link profile directly and go to feed
       const supabase = createClient()

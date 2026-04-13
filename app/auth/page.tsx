@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
+import { analytics } from '@/lib/analytics'
 
 type Mode = 'signin' | 'signup' | 'reset'
 type State = 'idle' | 'loading' | 'error' | 'reset_sent'
@@ -55,6 +56,7 @@ export default function AuthPage() {
           setState('error')
           setErrorMsg(signInError.message)
         } else {
+          analytics.signedUp()
           router.push('/feed')
         }
       }
@@ -67,6 +69,7 @@ export default function AuthPage() {
         setState('error')
         setErrorMsg(error.message)
       } else {
+        analytics.signedIn()
         router.push('/feed')
       }
     }

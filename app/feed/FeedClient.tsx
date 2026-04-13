@@ -7,6 +7,7 @@ import ArticleCard from './ArticleCard'
 import QuizCard from './QuizCard'
 import KeyInsightCard from './KeyInsightCard'
 import UnlockAnimation from './UnlockAnimation'
+import { analytics, identifyUser } from '@/lib/analytics'
 
 // --- TYPES ---
 
@@ -375,6 +376,7 @@ export default function FeedClient() {
     supabaseClient.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { window.location.href = '/auth'; return }
       if (user?.email) setUserEmail(user.email)
+      if (user?.id) identifyUser(user.id, { email: user.email || '' })
 
       const sessionId = localStorage.getItem('pm_session_id')
       if (sessionId) {
@@ -417,6 +419,8 @@ export default function FeedClient() {
   function handleQuizComplete(result: QuizResult) {
     setQuizResult(result)
     setPhase('insights')
+    const score = result.total > 0 ? Math.round((result.correct / result.total) * 100) : 0
+    analytics.quizCompleted(result.correct, result.total, score, 0)
   }
 
   function handleInsightsDone() {
@@ -675,7 +679,7 @@ export default function FeedClient() {
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                   }}
-                  onClick={() => setPhase('quiz')}
+                  onClick={() => { analytics.quizStarted(pathData.quizArticleIds.length); setPhase('quiz') }}
                   >
                     <div>
                       <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: 'white', marginBottom: '2px' }}>
