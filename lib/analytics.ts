@@ -1,25 +1,20 @@
 /**
- * Amplitude analytics utility for PM Dojo
- * All tracking calls are no-ops if NEXT_PUBLIC_AMPLITUDE_API_KEY is not set.
+ * Amplitude Analytics + Session Replay utility for PM Dojo
+ * Uses @amplitude/unified — runs client-side only, initialised once.
  */
 
-import * as amplitude from '@amplitude/analytics-browser'
+import * as amplitude from '@amplitude/unified'
+
+const API_KEY = 'e9a52ad6335333f23e2ac78e97da01d7'
 
 let initialised = false
 
 export function initAmplitude() {
   if (typeof window === 'undefined') return
   if (initialised) return
-  const apiKey = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY
-  if (!apiKey) return
-  amplitude.init(apiKey, {
-    autocapture: {
-      pageViews: true,
-      sessions: true,
-      formInteractions: false,
-      fileDownloads: false,
-    },
-    defaultTracking: false,
+  amplitude.initAll(API_KEY, {
+    analytics: { autocapture: true },
+    sessionReplay: { sampleRate: 1 },
   })
   initialised = true
 }
@@ -44,14 +39,12 @@ export function track(event: string, properties?: Record<string, string | number
 // --- Typed event helpers ---
 
 export const analytics = {
-  // Onboarding
   onboardingStarted: () =>
     track('onboarding_started'),
 
   onboardingCompleted: (archetype: string, archetypeDisplay: string) =>
     track('onboarding_completed', { archetype, archetype_display: archetypeDisplay }),
 
-  // Feed
   articleOpened: (articleId: string, articleTitle: string, position: number) =>
     track('article_opened', { article_id: articleId, article_title: articleTitle, position }),
 
@@ -61,21 +54,18 @@ export const analytics = {
   readGateFailed: (articleId: string, secondsSpent: number, secondsRemaining: number) =>
     track('read_gate_failed', { article_id: articleId, seconds_spent: secondsSpent, seconds_remaining: secondsRemaining }),
 
-  // Quiz
   quizStarted: (articleCount: number) =>
     track('quiz_started', { article_count: articleCount }),
 
   quizCompleted: (correct: number, total: number, score: number, newStreak: number) =>
     track('quiz_completed', { correct_answers: correct, total_questions: total, score_pct: score, new_streak: newStreak }),
 
-  // Auth
   signedUp: () =>
     track('signed_up'),
 
   signedIn: () =>
     track('signed_in'),
 
-  // Dashboard
   streakShared: (streak: number) =>
     track('streak_shared', { streak }),
 }
