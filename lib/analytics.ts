@@ -1,41 +1,46 @@
 /**
- * Amplitude Analytics + Session Replay utility for PM Dojo
- * Uses @amplitude/unified — runs client-side only, initialised once.
+ * Amplitude Analytics utility for PM Dojo
+ * Dynamically imported client-side only — never bundled into SSR to avoid
+ * hydration mismatches from @amplitude/unified's autocapture hook instrumentation.
  */
-
-import * as amplitude from '@amplitude/unified'
 
 const API_KEY = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY || ''
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let amp: any = null
 let initialised = false
 
-export function initAmplitude() {
+export async function initAmplitude() {
   if (typeof window === 'undefined') return
   if (initialised) return
   if (!API_KEY) return
-  amplitude.initAll(API_KEY, {
-    analytics: { autocapture: true },
-    // 10% sample rate — increase only for specific debugging. 100% is expensive at scale.
-    sessionReplay: { sampleRate: 0.1 },
-  })
-  initialised = true
+  try {
+    amp = await import('@amplitude/unified')
+    amp.initAll(API_KEY, {
+      analytics: { autocapture: false },
+      sessionReplay: { sampleRate: 0 },
+    })
+    initialised = true
+  } catch {
+    // Analytics failure is never fatal
+  }
 }
 
 export function identifyUser(userId: string, properties?: Record<string, string | number | boolean>) {
-  if (typeof window === 'undefined' || !initialised) return
-  amplitude.setUserId(userId)
+  if (!initialised || !amp) return
+  amp.setUserId(userId)
   if (properties) {
-    const identify = new amplitude.Identify()
+    const identify = new amp.Identify()
     Object.entries(properties).forEach(([key, value]) => {
       identify.set(key, value)
     })
-    amplitude.identify(identify)
+    amp.identify(identify)
   }
 }
 
 export function track(event: string, properties?: Record<string, string | number | boolean | null>) {
-  if (typeof window === 'undefined' || !initialised) return
-  amplitude.track(event, properties ?? {})
+  if (!initialised || !amp) return
+  amp.track(event, properties ?? {})
 }
 
 // --- Typed event helpers ---
