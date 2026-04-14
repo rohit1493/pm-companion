@@ -52,7 +52,7 @@ export default function Home() {
           color: '#f6fafe',
           margin: 0,
         }}>
-          Step into the
+          Train like a PM
           <br />
           <span style={{
             background: 'linear-gradient(90deg, #ffb690, #ff6b35, #d94f1e)',
@@ -60,7 +60,7 @@ export default function Home() {
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
           }}>
-            PM Dojo.
+            who ships.
           </span>
         </h1>
 
@@ -72,9 +72,7 @@ export default function Home() {
           maxWidth: '560px',
           margin: '24px auto 0',
         }}>
-          Not another newsletter. A training arena. Sequenced paths, a 30-second
-          read gate, and streaks for PMs who want to actually get sharper —
-          not just consume more.
+          A curated 10-article path matched to your PM archetype. Read. Quiz. Build the instincts that matter.
         </p>
 
         <div className="hero-cta-row" style={{
@@ -103,7 +101,7 @@ export default function Home() {
               fontFamily: "'Manrope', sans-serif",
             }}
           >
-            Enter the Dojo
+            Build my PM path →
           </Link>
           <span style={{
             fontFamily: "'Manrope', sans-serif",

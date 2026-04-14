@@ -461,6 +461,16 @@ export default function OnboardingFlow() {
   // Total steps per path (for progress bar)
   const totalSteps = goal === 'stay_updated' ? 2 : goal === 'deep_skill' ? 4 : 5
 
+  function handleBack() {
+    if (step === 3 && goal === 'deep_skill') {
+      setUpskillFocus('') // reset upskill focus when going back from step 3
+    }
+    if (step === 4) {
+      setExperience('') // reset experience when going back from step 4
+    }
+    setStep((s) => s - 1)
+  }
+
   function computeAndReveal() {
     setShowLoader(true)
   }
@@ -596,7 +606,7 @@ export default function OnboardingFlow() {
         {/* Interview prep — Step 2: Experience */}
         {step === 2 && goal === 'interview_prep' && (
           <StepWrapper key="step2-ip">
-            <BackBtn onClick={() => setStep(1)} />
+            <BackBtn onClick={handleBack} />
             <Question
               title="Where are you in your PM journey?"
               sub="Helps us calibrate depth and difficulty."
@@ -622,7 +632,7 @@ export default function OnboardingFlow() {
         {/* Interview prep — Step 3: Target company */}
         {step === 3 && goal === 'interview_prep' && (
           <StepWrapper key="step3-ip">
-            <BackBtn onClick={() => setStep(2)} />
+            <BackBtn onClick={handleBack} />
             <Question
               title="What's your target?"
               sub="Your path gets calibrated to the interview style."
@@ -647,7 +657,7 @@ export default function OnboardingFlow() {
         {/* Interview prep — Step 4: Weak areas (optional) */}
         {step === 4 && goal === 'interview_prep' && (
           <StepWrapper key="step4-ip">
-            <BackBtn onClick={() => setStep(3)} />
+            <BackBtn onClick={handleBack} />
             <Question
               title="Where do you want to improve?"
               sub="Optional — pick any that apply."
@@ -668,7 +678,7 @@ export default function OnboardingFlow() {
         {/* Deep skill — Step 2: Focus area */}
         {step === 2 && goal === 'deep_skill' && (
           <StepWrapper key="step2-ds">
-            <BackBtn onClick={() => setStep(1)} />
+            <BackBtn onClick={handleBack} />
             <Question
               title="What do you want to master?"
               sub="We'll build a path focused on your chosen domain."
@@ -695,7 +705,7 @@ export default function OnboardingFlow() {
         {/* Deep skill — Step 3: Experience */}
         {step === 3 && goal === 'deep_skill' && (
           <StepWrapper key="step3-ds">
-            <BackBtn onClick={() => setStep(2)} />
+            <BackBtn onClick={handleBack} />
             <Question
               title="Where are you in your PM journey?"
               sub="Helps us calibrate depth and difficulty."

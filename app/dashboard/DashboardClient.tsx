@@ -84,10 +84,14 @@ export default function DashboardClient() {
   useEffect(() => {
     fetch('/api/dashboard')
       .then((r) => {
+        if (r.status === 401) {
+          window.location.href = '/auth'
+          return null
+        }
         if (!r.ok) throw new Error('Failed to load dashboard')
         return r.json()
       })
-      .then((d) => { setData(d); setLoading(false) })
+      .then((d) => { if (d) { setData(d); setLoading(false) } })
       .catch(() => { setFetchError(true); setLoading(false) })
 
     const supabase = createClient()
@@ -287,7 +291,7 @@ export default function DashboardClient() {
             Your progress
           </h1>
           <p style={{ fontSize: '14px', color: '#6b7685' }}>
-            {loading ? '...' : data?.readToday ? 'You read today. Keep it up.' : 'Read today to extend your streak.'}
+            {loading ? '...' : data?.readToday ? 'Done for today. See you tomorrow.' : 'You haven\'t read today. Your streak resets at midnight.'}
           </p>
         </div>
 
@@ -427,7 +431,7 @@ export default function DashboardClient() {
                     PM Dojo Score
                   </p>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5' }}>
-                    {data.dojoScore >= 75 ? 'Strong performance across your quizzes.' : 'Keep reading and quizzing to improve.'}
+                    {data.dojoScore >= 75 ? 'Sharp recall. You\'re in the top tier.' : 'Quiz more accurately to push your Dojo Score above 75.'}
                   </p>
                 </div>
               </div>

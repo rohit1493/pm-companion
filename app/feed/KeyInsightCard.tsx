@@ -26,8 +26,14 @@ export default function KeyInsightCard({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    if (withInsights.length === 0) {
+      onDone()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [withInsights.length])
+
   if (withInsights.length === 0) {
-    onDone()
     return null
   }
 

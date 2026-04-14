@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import ArticleCard from './ArticleCard'
@@ -351,6 +351,8 @@ export default function FeedClient() {
   const [userEmail, setUserEmail] = useState('')
   const [error, setError] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const identifiedRef = useRef(false)
+  const pathCompleteTrackedRef = useRef(false)
 
   const loadFeed = useCallback(async () => {
     setPhase('loading')
@@ -370,8 +372,9 @@ export default function FeedClient() {
         // quiz banner appearing = quiz triggered
         if (data.quizReady) analytics.quizTriggered(data.quizArticleIds?.length ?? 0)
         // path complete
-        if (data.current === null && data.completedCount > 0 && data.completedCount === data.totalInPath) {
+        if (data.current === null && data.completedCount > 0 && data.completedCount === data.totalInPath && !pathCompleteTrackedRef.current) {
           analytics.pathComplete(data.totalInPath, null)
+          pathCompleteTrackedRef.current = true
         }
       }
     } catch {
@@ -386,7 +389,10 @@ export default function FeedClient() {
     supabaseClient.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { window.location.href = '/auth'; return }
       if (user?.email) setUserEmail(user.email)
-      if (user?.id) identifyUser(user.id, { email: user.email || '' })
+      if (user?.id && !identifiedRef.current) {
+        identifyUser(user.id, { email: user.email || '' })
+        identifiedRef.current = true
+      }
 
       const sessionId = localStorage.getItem('pm_session_id')
       if (sessionId) {
@@ -412,18 +418,28 @@ export default function FeedClient() {
     setPhase('unlocking')
   }
 
-  function handleUnlockComplete() {
-    fetch('/api/feed')
-      .then((r) => r.json())
-      .then((data: FeedData) => {
-        setFeedData(data)
-        if (data.viewType === 'path' && data.quizReady) {
-          setPhase('quiz')
-        } else {
-          setPhase('feed')
+  async function handleUnlockComplete() {
+    try {
+      const r = await fetch('/api/feed')
+      if (r.status === 401) {
+        window.location.href = '/auth'
+        return
+      }
+      if (!r.ok) throw new Error('Failed to load feed')
+      const data: FeedData = await r.json()
+      setFeedData(data)
+      if (data.viewType === 'path' && data.quizReady) {
+        if (!data.quizArticleIds?.length) {
+          loadFeed()
+          return
         }
-      })
-      .catch(() => { setPhase('feed') })
+        setPhase('quiz')
+      } else {
+        setPhase('feed')
+      }
+    } catch {
+      setPhase('feed')
+    }
   }
 
   function handleQuizComplete(result: QuizResult & { newStreak?: number }) {
@@ -641,7 +657,7 @@ export default function FeedClient() {
         )}
 
         {/* QUIZ PHASE */}
-        {phase === 'quiz' && pathData && (
+        {phase === 'quiz' && pathData && (pathData.quizArticleIds?.length ?? 0) > 0 && (
           <QuizCard
             articleIds={pathData.quizArticleIds}
             onComplete={handleQuizComplete}
@@ -694,7 +710,14 @@ export default function FeedClient() {
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                   }}
-                  onClick={() => { analytics.quizStarted(pathData.quizArticleIds.length); setPhase('quiz') }}
+                  onClick={() => {
+                    if (!pathData?.quizArticleIds?.length) {
+                      loadFeed()
+                      return
+                    }
+                    analytics.quizStarted(pathData.quizArticleIds.length)
+                    setPhase('quiz')
+                  }}
                   >
                     <div>
                       <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: 'white', marginBottom: '2px' }}>

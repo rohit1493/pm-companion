@@ -20,7 +20,7 @@ type QuizArticle = {
 type QuizState =
   | { phase: 'intro' }
   | { phase: 'question'; index: number; retake: boolean }
-  | { phase: 'answer_correct'; index: number }
+  | { phase: 'answer_correct'; index: number; newCorrect: number }
   | { phase: 'answer_wrong'; index: number; firstTry: boolean }
   | { phase: 'answer_shown'; index: number }
   | { phase: 'score'; correctCount: number; totalCount: number }
@@ -98,7 +98,7 @@ export default function QuizCard({
     if (isCorrect) {
       const newCorrect = correctCount + 1
       setCorrectCount(newCorrect)
-      setQuizState({ phase: 'answer_correct', index })
+      setQuizState({ phase: 'answer_correct', index, newCorrect })
     } else if (!retake) {
       // First wrong — offer retake
       setQuizState({ phase: 'answer_wrong', index, firstTry: true })
@@ -166,9 +166,14 @@ export default function QuizCard({
     )
   }
 
-  if (questions.length === 0) {
-    // No questions seeded — skip quiz silently
-    finishQuiz(0)
+  useEffect(() => {
+    if (!loading && questions.length === 0) {
+      finishQuiz(0)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, questions.length])
+
+  if (!loading && questions.length === 0) {
     return null
   }
 
@@ -184,7 +189,7 @@ export default function QuizCard({
             {articleIds.length} articles · {questions.length} questions · ~2 minutes
           </p>
           <p style={{ ...mutedStyle, marginBottom: '32px' }}>
-            Retakes allowed. No pressure.
+            Retakes allowed — but try without them first. This is how you actually retain it.
           </p>
           <button
             onClick={() => setQuizState({ phase: 'question', index: 0, retake: false })}
@@ -279,7 +284,7 @@ export default function QuizCard({
                   <p style={{ fontSize: '14px', fontWeight: 600, color: '#4ade80', fontFamily: "'Inter', sans-serif", marginBottom: '12px' }}>
                     ✓ Correct!
                   </p>
-                  <button onClick={() => next(idx, correctCount)} style={primaryBtn}>
+                  <button onClick={() => next(idx, quizState.newCorrect ?? correctCount)} style={primaryBtn}>
                     Next →
                   </button>
                 </div>
@@ -327,8 +332,8 @@ export default function QuizCard({
 
         let emoji = '🎯'
         let copy = 'Sharp. Key insights unlocked below.'
-        if (pct < 0.75 && pct > 0.25) { emoji = '📚'; copy = 'Good effort. Read the insights to reinforce.' }
-        if (isLow) { emoji = '😅'; copy = 'You may want to re-read before continuing.' }
+        if (pct < 0.75 && pct > 0.25) { emoji = '📚'; copy = 'You\'re getting there. Review the key insights below — they fill the gaps.' }
+        if (isLow) { emoji = '😅'; copy = 'Score too low to keep moving. Re-read the articles to actually retain this.' }
 
         return (
           <div style={{ textAlign: 'center' }}>
@@ -365,7 +370,7 @@ export default function QuizCard({
                     padding: '12px 24px',
                   }}
                 >
-                  {submitting ? 'Saving...' : 'Continue anyway'}
+                  {submitting ? 'Saving...' : 'Skip for now →'}
                 </button>
               </div>
             ) : (

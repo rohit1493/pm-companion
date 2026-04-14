@@ -9,9 +9,14 @@ const supabaseAdmin = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://pm-companion-six.vercel.app'
+
 export async function GET(request: NextRequest) {
   const secret = request.headers.get('x-sync-secret')
-  const validSecret = process.env.SYNC_SECRET || 'pm-companion-sync'
+  const validSecret = process.env.SYNC_SECRET
+  if (!validSecret) {
+    return NextResponse.json({ error: 'SYNC_SECRET env var not configured' }, { status: 500 })
+  }
   if (secret !== validSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -23,8 +28,10 @@ export async function GET(request: NextRequest) {
   const weekAgoStr = weekAgo.toISOString().split('T')[0]
 
   // Get all users with their emails from auth
-  const { data: { users }, error: usersError } = await supabaseAdmin.auth.admin.listUsers()
+  // TODO: add cursor pagination for >1000 users
+  const { data: authUsersData, error: usersError } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
   if (usersError) return NextResponse.json({ error: usersError.message }, { status: 500 })
+  const users = authUsersData?.users || []
 
   const results: { email: string; sent: boolean; articles: number }[] = []
 
@@ -89,7 +96,7 @@ export async function GET(request: NextRequest) {
           ${articleLines}
         </ul>
 
-        <a href="https://pm-companion-six.vercel.app/feed"
+        <a href="${APP_URL}/feed"
            style="display:block;background:#4F46E5;color:white;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px">
           Read today's article →
         </a>
@@ -100,6 +107,9 @@ export async function GET(request: NextRequest) {
         <p style="color:#CBD5E1;font-size:12px;margin:0;text-align:center">
           PM Companion · You're receiving this because you signed up for weekly digests.
         </p>
+        <p style="font-size:11px;color:#666;text-align:center;margin-top:32px;">
+          <a href="${APP_URL}/unsubscribe?uid=${user.id}" style="color:#666;">Unsubscribe</a> · PM Dojo
+        </p>
       </div>
     </div>
   </div>
@@ -108,7 +118,7 @@ export async function GET(request: NextRequest) {
 
     try {
       await resend.emails.send({
-        from: 'PM Companion <onboarding@resend.dev>',
+        from: process.env.RESEND_FROM_EMAIL || 'PM Companion <onboarding@resend.dev>',
         to: user.email,
         subject: `You read ${reads.length} articles last week 📚`,
         html,

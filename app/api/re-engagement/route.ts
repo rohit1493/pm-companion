@@ -9,13 +9,15 @@ const supabaseAdmin = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const APP_URL = 'https://pm-companion-six.vercel.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://pm-companion-six.vercel.app'
 
 export async function GET(request: NextRequest) {
   const headerSecret = request.headers.get('x-sync-secret')
-  const querySecret = request.nextUrl.searchParams.get('secret')
-  const validSecret = process.env.SYNC_SECRET || 'pm-companion-sync'
-  if (headerSecret !== validSecret && querySecret !== validSecret) {
+  const validSecret = process.env.SYNC_SECRET
+  if (!validSecret) {
+    return NextResponse.json({ error: 'SYNC_SECRET env var not configured' }, { status: 500 })
+  }
+  if (headerSecret !== validSecret) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest) {
   // Fetch all active path users with their email + streak data
   const { data: profiles } = await supabaseAdmin
     .from('user_profiles')
-    .select('user_id, archetype, archetype_display, streak, streak_last_updated')
+    .select('user_id, archetype, archetype_display, streak, streak_last_updated, last_emailed_at')
     .not('archetype', 'is', null)
     .neq('archetype', 'scanner')
 
@@ -36,10 +38,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Get emails for these users
-  const userIds = profiles.map((p) => p.user_id).filter(Boolean)
-  const { data: authUsers } = await supabaseAdmin.auth.admin.listUsers()
+  const { data: authUsersData } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
+  // TODO: add cursor pagination for >1000 users
   const emailMap = new Map(
-    (authUsers?.users || []).map((u) => [u.id, u.email])
+    (authUsersData?.users || []).map((u) => [u.id, u.email])
   )
 
   const results: { email: string; trigger: string; sent: boolean }[] = []
@@ -52,37 +54,60 @@ export async function GET(request: NextRequest) {
     const streak = profile.streak || 0
     const displayName = profile.archetype_display || 'PM'
 
-    // Trigger 1: 4–24hr since last active → streak at risk nudge
-    if (lastActive && lastActive < fourHoursAgo && lastActive > twentyFourHoursAgo) {
-      const { error } = await resend.emails.send({
-        from: 'PM Dojo <onboarding@resend.dev>',
-        to: email,
-        subject: `Your ${streak}-day streak is waiting 🔥`,
-        html: streakNudgeEmail(displayName, streak),
-      })
-      results.push({ email, trigger: 'streak_risk', sent: !error })
-    }
+    // 24-hour dedup guard
+    const lastEmailed = profile.last_emailed_at ? new Date(profile.last_emailed_at) : null
+    const twentyFourHoursAgoDedupe = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+    if (lastEmailed && lastEmailed > twentyFourHoursAgoDedupe) continue
 
-    // Trigger 2: streak = 6 → one more day to PM Dojo score
-    else if (streak === 6) {
+    // Trigger 2: streak = 6 → one more day to PM Dojo score (highest priority — check before streak nudge)
+    if (streak === 6) {
       const { error } = await resend.emails.send({
-        from: 'PM Dojo <onboarding@resend.dev>',
+        from: process.env.RESEND_FROM_EMAIL || 'PM Dojo <onboarding@resend.dev>',
         to: email,
-        subject: 'One more article. Your PM Dojo score unlocks tomorrow.',
-        html: daySevenEmail(displayName),
+        subject: 'One more article. Your PM Dojo score unlocks today.',
+        html: daySevenEmail(displayName, profile.user_id),
       })
       results.push({ email, trigger: 'day_6', sent: !error })
+      if (!error) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .update({ last_emailed_at: now.toISOString() })
+          .eq('user_id', profile.user_id)
+      }
+    }
+
+    // Trigger 1: 4–24hr since last active → streak at risk nudge (only if NOT Day 6)
+    else if (lastActive && lastActive < fourHoursAgo && lastActive > twentyFourHoursAgo) {
+      const { error } = await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL || 'PM Dojo <onboarding@resend.dev>',
+        to: email,
+        subject: `Your ${streak}-day streak is waiting 🔥`,
+        html: streakNudgeEmail(displayName, streak, profile.user_id),
+      })
+      results.push({ email, trigger: 'streak_risk', sent: !error })
+      if (!error) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .update({ last_emailed_at: now.toISOString() })
+          .eq('user_id', profile.user_id)
+      }
     }
 
     // Trigger 3: 7+ days inactive → archetype re-engagement
     else if (lastActive && lastActive < sevenDaysAgo) {
       const { error } = await resend.emails.send({
-        from: 'PM Dojo <onboarding@resend.dev>',
+        from: process.env.RESEND_FROM_EMAIL || 'PM Dojo <onboarding@resend.dev>',
         to: email,
         subject: `${displayName} — your path is still waiting`,
-        html: reEngagementEmail(displayName, profile.archetype_display || ''),
+        html: reEngagementEmail(displayName, profile.archetype_display || '', profile.user_id),
       })
       results.push({ email, trigger: '7day_inactive', sent: !error })
+      if (!error) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .update({ last_emailed_at: now.toISOString() })
+          .eq('user_id', profile.user_id)
+      }
     }
   }
 
@@ -90,10 +115,11 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ sent, results })
 }
 
-function streakNudgeEmail(name: string, streak: number): string {
+function streakNudgeEmail(name: string, streak: number, userId: string): string {
   return `
     <div style="font-family:'DM Sans',sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;background:#F8FAFC;">
       <div style="background:white;border-radius:16px;padding:36px 32px;border:1px solid #E2E8F0;">
+        <p style="font-size:15px;color:#e0e0e0;margin-bottom:16px;">Hey, ${name}.</p>
         <p style="font-family:'Georgia',serif;font-size:20px;color:#1E293B;margin-bottom:8px;">
           Your streak is at risk 🔥
         </p>
@@ -105,14 +131,18 @@ function streakNudgeEmail(name: string, streak: number): string {
           Continue reading →
         </a>
         <p style="font-size:12px;color:#94A3B8;margin-top:20px;text-align:center;">PM Dojo · pm-companion-six.vercel.app</p>
+        <p style="font-size:11px;color:#666;text-align:center;margin-top:32px;">
+          <a href="${APP_URL}/unsubscribe?uid=${userId}" style="color:#666;">Unsubscribe</a> · PM Dojo
+        </p>
       </div>
     </div>`
 }
 
-function daySevenEmail(name: string): string {
+function daySevenEmail(name: string, userId: string): string {
   return `
     <div style="font-family:'DM Sans',sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;background:#F8FAFC;">
       <div style="background:white;border-radius:16px;padding:36px 32px;border:1px solid #E2E8F0;">
+        <p style="font-size:15px;color:#e0e0e0;margin-bottom:16px;">Hey, ${name}.</p>
         <p style="font-family:'Georgia',serif;font-size:20px;color:#1E293B;margin-bottom:8px;">
           One article away from your PM Dojo score 🎯
         </p>
@@ -124,11 +154,14 @@ function daySevenEmail(name: string): string {
           Read Article 7 →
         </a>
         <p style="font-size:12px;color:#94A3B8;margin-top:20px;text-align:center;">PM Dojo · pm-companion-six.vercel.app</p>
+        <p style="font-size:11px;color:#666;text-align:center;margin-top:32px;">
+          <a href="${APP_URL}/unsubscribe?uid=${userId}" style="color:#666;">Unsubscribe</a> · PM Dojo
+        </p>
       </div>
     </div>`
 }
 
-function reEngagementEmail(name: string, archetypeDisplay: string): string {
+function reEngagementEmail(name: string, archetypeDisplay: string, userId: string): string {
   return `
     <div style="font-family:'DM Sans',sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;background:#F8FAFC;">
       <div style="background:white;border-radius:16px;padding:36px 32px;border:1px solid #E2E8F0;">
@@ -146,6 +179,9 @@ function reEngagementEmail(name: string, archetypeDisplay: string): string {
           Pick up where you left off →
         </a>
         <p style="font-size:12px;color:#94A3B8;margin-top:20px;text-align:center;">PM Dojo · pm-companion-six.vercel.app</p>
+        <p style="font-size:11px;color:#666;text-align:center;margin-top:32px;">
+          <a href="${APP_URL}/unsubscribe?uid=${userId}" style="color:#666;">Unsubscribe</a> · PM Dojo
+        </p>
       </div>
     </div>`
 }
