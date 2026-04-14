@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
 import { analytics } from '@/lib/analytics'
@@ -16,6 +16,15 @@ export default function AuthPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
   const router = useRouter()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const err = params.get('error')
+    if (err) {
+      setState('error')
+      setErrorMsg(decodeURIComponent(err))
+    }
+  }, [])
 
   async function handleGoogleSignIn() {
     setGoogleLoading(true)
