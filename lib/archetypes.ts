@@ -92,33 +92,38 @@ export function assignArchetype(
   return ARCHETYPES.scanner
 }
 
-// Build a 10-article sequence weighted by archetype category preferences
+// Build a sequence weighted by archetype category preferences.
+// excludeIds: articles already in the user's path — prevents duplicates on refresh.
+// count: how many articles to return (default 10).
 export function buildSequence(
   archetype: Archetype,
   articles: { id: string; category: string | null; difficulty: number | null }[],
+  excludeIds: Set<string> = new Set(),
+  count = 10,
 ): string[] {
-  if (articles.length === 0) return []
+  const eligible = articles.filter((a) => !excludeIds.has(a.id))
+  if (eligible.length === 0) return []
 
   if (archetype.key === 'scanner') {
-    return articles.slice(0, 10).map((a) => a.id)
+    return eligible.slice(0, count).map((a) => a.id)
   }
 
   const weights = archetype.categoryWeights
 
-  const scored = articles.map((a) => ({
+  const scored = eligible.map((a) => ({
     id: a.id,
-    // Weighted score + tiny randomness for variety
+    // Weighted score + tiny randomness for variety within same tier
     score: (weights[a.category ?? ''] ?? 0) + Math.random() * 0.3,
     difficulty: a.difficulty ?? 1,
   }))
 
-  // High score first; within same score, easier articles come first
+  // High score first; within same score bracket, easier articles come first (beginner→advanced ramp)
   scored.sort((a, b) => {
     if (Math.abs(b.score - a.score) > 0.01) return b.score - a.score
     return a.difficulty - b.difficulty
   })
 
-  return scored.slice(0, 10).map((a) => a.id)
+  return scored.slice(0, count).map((a) => a.id)
 }
 
 export { ARCHETYPES }

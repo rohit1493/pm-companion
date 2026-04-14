@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { buildSequence, ARCHETYPES, type ArchetypeKey } from '@/lib/archetypes'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -137,7 +138,64 @@ export async function GET() {
     progressRows = rebuilt
   }
 
-  const rows = progressRows || []
+  let rows = progressRows || []
+
+  // Sequence refresh: when ≤2 unfinished articles remain, append 5 new ones
+  const activeCount = rows.filter((r) => !r.completed).length
+  if (activeCount <= 2 && rows.length > 0 && profile?.archetype && profile.archetype !== 'scanner') {
+    const existingIds = new Set(
+      rows.map((r) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (r.articles as any)?.id as string
+      }).filter(Boolean)
+    )
+
+    const { data: freshArticles } = await supabaseAdmin
+      .from('articles')
+      .select('id, category, difficulty')
+      .eq('is_active', true)
+      .not('id', 'in', `(${[...existingIds].join(',')})`)
+      .limit(100)
+
+    if (freshArticles && freshArticles.length > 0) {
+      const archetype = ARCHETYPES[profile.archetype as ArchetypeKey] ?? ARCHETYPES.scanner
+      const newIds = buildSequence(archetype, freshArticles, existingIds, 5)
+
+      if (newIds.length > 0) {
+        const maxPosition = rows.reduce((max, r) => Math.max(max, r.position), 0)
+        const toInsert = newIds.map((articleId, idx) => ({
+          user_id: user.id,
+          article_id: articleId,
+          position: maxPosition + idx + 1,
+          read_gate_passed: false,
+          time_on_article_seconds: 0,
+          completed: false,
+        }))
+        await supabaseAdmin.from('user_progress').insert(toInsert)
+
+        // Re-fetch with new rows
+        const { data: extended } = await supabaseAdmin
+          .from('user_progress')
+          .select(`
+            id,
+            position,
+            read_gate_passed,
+            time_on_article_seconds,
+            completed,
+            completed_at,
+            articles (
+              id, title, url, source, published_at, summary, summary_short,
+              topics, reading_time_minutes, category, difficulty, hooks, key_insight,
+              quiz_q1, quiz_a1, quiz_q2, quiz_a2
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('position', { ascending: true })
+        rows = extended || rows
+      }
+    }
+  }
+
   const completedRows = rows.filter((r) => r.completed)
   const activeRows = rows.filter((r) => !r.completed)
   const current = activeRows[0] || null

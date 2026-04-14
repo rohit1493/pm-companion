@@ -3,6 +3,20 @@ import Parser from 'rss-parser'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 import { RSS_SOURCES } from '@/lib/rss-sources'
+import { computeDifficulty } from '@/lib/difficulty'
+
+const ALLOWED_CATEGORIES = [
+  'Product Strategy',
+  'AI',
+  'Growth',
+  'Analytics',
+  'GTM',
+  'Startups',
+  'B2B/SaaS',
+  'Design & UX',
+  'PM Career',
+  'Case Studies & Teardowns',
+] as const
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,26 +53,18 @@ async function isUrlAlive(url: string): Promise<boolean> {
   }
 }
 
-async function enrichArticle(article: {
-  id: string
-  title: string
-  summary: string
-}): Promise<{
-  summary_short: string
-  key_insight: string
-  hooks: string[]
-  quiz_q1: string
-  quiz_a1: string
-  quiz_q2: string
-  quiz_a2: string
-  category: string
-  difficulty: number
-} | null> {
-  try {
-    const prompt = `You are enriching a PM article for a learning app. Given the article title and summary, generate the following JSON. Respond ONLY with valid JSON, no markdown.
+function buildEnrichPrompt(title: string, summary: string, strict: boolean): string {
+  const categoryList = ALLOWED_CATEGORIES.join(', ')
+  const strictNote = strict
+    ? `CRITICAL: You MUST choose the category from this exact list. No variations allowed: ${categoryList}`
+    : `Pick the single best match from: ${categoryList}`
 
-Article title: ${article.title}
-Article summary: ${article.summary.slice(0, 500)}
+  return `You are enriching a PM article for a learning app. Given the article title and summary, generate the following JSON. Respond ONLY with valid JSON, no markdown.
+
+Article title: ${title}
+Article summary: ${summary.slice(0, 500)}
+
+${strictNote}
 
 Generate:
 {
@@ -69,27 +75,81 @@ Generate:
   "quiz_a1": "Correct answer to quiz_q1 (1 sentence, max 12 words)",
   "quiz_q2": "A second different comprehension question",
   "quiz_a2": "Correct answer to quiz_q2 (1 sentence, max 12 words)",
-  "category": "One of: Product Strategy, AI, Growth, Analytics, GTM, Startups, B2B/SaaS, Design & UX, PM Career, Case Studies & Teardowns",
-  "difficulty": 1
+  "category": "exact string from the allowed list above"
+}`
 }
 
-difficulty: 1=Beginner, 2=Intermediate, 3=Advanced. Judge by technical depth and assumed PM experience needed.`
-
-    const openrouter = new OpenAI({
+async function callGroq(prompt: string): Promise<Record<string, unknown> | null> {
+  try {
+    const client = new OpenAI({
       apiKey: process.env.GROQ_API_KEY,
       baseURL: 'https://api.groq.com/openai/v1',
     })
-    const msg = await openrouter.chat.completions.create({
+    const msg = await client.chat.completions.create({
       model: 'llama-3.1-8b-instant',
       max_tokens: 600,
       messages: [{ role: 'user', content: prompt }],
     })
-
     const text = msg.choices[0]?.message?.content ?? ''
-    const json = JSON.parse(text.trim())
-    return json
+    return JSON.parse(text.trim())
   } catch {
     return null
+  }
+}
+
+async function enrichArticle(article: {
+  id: string
+  title: string
+  summary: string
+  reading_time_minutes?: number
+}): Promise<{
+  summary_short: string
+  key_insight: string
+  hooks: string[]
+  quiz_q1: string
+  quiz_a1: string
+  quiz_q2: string
+  quiz_a2: string
+  category: string | null
+  difficulty: number
+  is_active: boolean
+} | null> {
+  // First attempt
+  const json = await callGroq(buildEnrichPrompt(article.title, article.summary, false))
+  if (!json) return null
+
+  let category: string | null = null
+  if (typeof json.category === 'string' && (ALLOWED_CATEGORIES as readonly string[]).includes(json.category)) {
+    category = json.category
+  }
+
+  // Category invalid — one retry with stricter prompt
+  if (!category) {
+    const retryJson = await callGroq(buildEnrichPrompt(article.title, article.summary, true))
+    if (retryJson && typeof retryJson.category === 'string' && (ALLOWED_CATEGORIES as readonly string[]).includes(retryJson.category)) {
+      category = retryJson.category
+    }
+  }
+
+  // Compute difficulty deterministically — never trust LLM for this
+  const difficulty = computeDifficulty(
+    article.title,
+    article.summary,
+    article.reading_time_minutes ?? 5,
+  )
+
+  return {
+    summary_short: typeof json.summary_short === 'string' ? json.summary_short : '',
+    key_insight: typeof json.key_insight === 'string' ? json.key_insight : '',
+    hooks: Array.isArray(json.hooks) ? json.hooks as string[] : [],
+    quiz_q1: typeof json.quiz_q1 === 'string' ? json.quiz_q1 : '',
+    quiz_a1: typeof json.quiz_a1 === 'string' ? json.quiz_a1 : '',
+    quiz_q2: typeof json.quiz_q2 === 'string' ? json.quiz_q2 : '',
+    quiz_a2: typeof json.quiz_a2 === 'string' ? json.quiz_a2 : '',
+    category,
+    difficulty,
+    // Deactivate if we still can't get a valid category — invisible to feed
+    is_active: category !== null,
   }
 }
 
@@ -149,10 +209,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // --- Phase 2: Claude enrichment (articles missing summary_short, cap at 20) ---
+  // --- Phase 2: Groq enrichment (articles missing summary_short, cap at 20) ---
   const { data: toEnrich } = await supabaseAdmin
     .from('articles')
-    .select('id, title, summary')
+    .select('id, title, summary, reading_time_minutes')
     .is('summary_short', null)
     .limit(20)
 
@@ -173,6 +233,8 @@ export async function GET(request: NextRequest) {
         quiz_a2: data.quiz_a2,
         category: data.category,
         difficulty: data.difficulty,
+        // Deactivate if no valid category — prevents invisible-to-archetype articles
+        is_active: data.is_active,
       })
       .eq('id', article.id)
 
