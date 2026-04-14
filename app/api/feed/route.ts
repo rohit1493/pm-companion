@@ -57,7 +57,7 @@ export async function GET() {
   }
 
   // --- Path view ---
-  const { data: progressRows } = await supabaseAdmin
+  let { data: progressRows } = await supabaseAdmin
     .from('user_progress')
     .select(`
       id,
@@ -88,6 +88,54 @@ export async function GET() {
     `)
     .eq('user_id', user.id)
     .order('position', { ascending: true })
+
+  // Auto-heal: if path user has 0 progress rows but has a saved sequence, rebuild progress
+  if ((!progressRows || progressRows.length === 0) && profile?.sequence?.length) {
+    const sequence = profile.sequence as string[]
+    const toInsert = sequence.map((articleId: string, idx: number) => ({
+      user_id: user.id,
+      article_id: articleId,
+      position: idx + 1,
+      read_gate_passed: false,
+      time_on_article_seconds: 0,
+      completed: false,
+    }))
+    await supabaseAdmin.from('user_progress').insert(toInsert)
+
+    // Re-fetch after rebuild
+    const { data: rebuilt } = await supabaseAdmin
+      .from('user_progress')
+      .select(`
+        id,
+        position,
+        read_gate_passed,
+        time_on_article_seconds,
+        completed,
+        completed_at,
+        articles (
+          id,
+          title,
+          url,
+          source,
+          published_at,
+          summary,
+          summary_short,
+          topics,
+          reading_time_minutes,
+          category,
+          difficulty,
+          hooks,
+          key_insight,
+          quiz_q1,
+          quiz_a1,
+          quiz_q2,
+          quiz_a2
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('position', { ascending: true })
+    progressRows = rebuilt
+  }
 
   const rows = progressRows || []
   const completedRows = rows.filter((r) => r.completed)

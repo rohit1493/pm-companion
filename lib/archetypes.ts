@@ -85,6 +85,7 @@ export function assignArchetype(
     if (upskillFocus === 'ai') return ARCHETYPES.ai_first_pm
     if (upskillFocus === 'growth' || upskillFocus === 'analytics') return ARCHETYPES.growth_pm
     if (upskillFocus === 'strategy') return ARCHETYPES.faang_climber
+    if (upskillFocus === 'ux') return ARCHETYPES.growth_pm
     return ARCHETYPES.ai_first_pm
   }
 

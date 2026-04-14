@@ -755,11 +755,48 @@ export default function FeedClient() {
                 )}
 
                 {pathData.current === null && pathData.totalInPath === 0 && (
-                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#6b7685' }}>
-                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
-                    <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px' }}>
-                      Your path is being built. Check back shortly.
+                  <div style={{
+                    background: '#121821',
+                    border: '1px solid #2a3340',
+                    borderRadius: '16px',
+                    padding: '40px 24px',
+                    textAlign: 'center',
+                  }}>
+                    <div style={{ fontSize: '36px', marginBottom: '16px' }}>🗺️</div>
+                    <p style={{
+                      fontFamily: "'Manrope', sans-serif",
+                      fontSize: '18px',
+                      fontWeight: 400,
+                      color: '#f6fafe',
+                      marginBottom: '8px',
+                    }}>
+                      Your path isn&apos;t ready yet
                     </p>
+                    <p style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '13px',
+                      color: '#6b7685',
+                      lineHeight: 1.6,
+                      marginBottom: '24px',
+                    }}>
+                      We&apos;re still seeding articles for your archetype. Check back in a few hours, or restart onboarding to try a different path.
+                    </p>
+                    <Link
+                      href="/onboarding"
+                      style={{
+                        display: 'inline-block',
+                        padding: '12px 24px',
+                        background: '#ff6b35',
+                        color: 'white',
+                        borderRadius: '10px',
+                        fontFamily: "'Inter', sans-serif",
+                        fontSize: '14px',
+                        fontWeight: 500,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      Restart onboarding →
+                    </Link>
                   </div>
                 )}
 
