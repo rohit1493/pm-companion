@@ -8,7 +8,6 @@ import { createClient } from '@/lib/supabase-browser'
 import { analytics } from '@/lib/analytics'
 import { getAvatarComponent } from '@/components/avatars'
 import { getTheme } from '@/lib/archetype-themes'
-import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
 
 // --- HELPERS ---
 
@@ -264,8 +263,6 @@ function ArchetypeReveal({
     return () => clearTimeout(t)
   }, [])
 
-  useArchetypeTheme(archetype?.key)
-
   const AvatarComponent = getAvatarComponent(archetype?.key)
   const theme = getTheme(archetype?.key)
 
@@ -273,11 +270,9 @@ function ArchetypeReveal({
     <div style={{
       opacity: visible ? 1 : 0,
       transform: visible ? 'scale(1)' : 'scale(0.96)',
-      transition: 'opacity 400ms ease, transform 400ms ease, background 0.8s ease-in-out',
+      transition: 'opacity 400ms ease, transform 400ms ease',
       textAlign: 'center',
       padding: '8px 0',
-      animation: visible ? 'archetypeRevealScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' : 'none',
-      background: theme.bgGradient,
     }}>
       {/* Avatar */}
       <div style={{
@@ -295,7 +290,7 @@ function ArchetypeReveal({
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`,
+            background: 'radial-gradient(circle, rgba(255,107,53,0.18) 0%, transparent 70%)',
             marginBottom: '16px',
           }}
         >
@@ -325,8 +320,8 @@ function ArchetypeReveal({
         fontFamily: "'Manrope', sans-serif",
         fontSize: 'clamp(28px, 7vw, 36px)',
         fontWeight: 400,
-        color: theme.primary,
-        textShadow: `0 0 20px ${theme.glow}`,
+        color: '#ff6b35',
+        textShadow: '0 0 20px rgba(255,107,53,0.35)',
         lineHeight: 1.2,
         marginBottom: '16px',
         letterSpacing: '-0.02em',
@@ -339,7 +334,6 @@ function ArchetypeReveal({
         fontSize: '15px',
         color: '#8b96a5',
         lineHeight: 1.6,
-        marginBottom: '32px',
         maxWidth: '320px',
         margin: '0 auto 32px',
         animation: 'archetypeFadeUp 0.5s ease-out 0.3s forwards',
@@ -349,15 +343,14 @@ function ArchetypeReveal({
       </p>
 
       <div style={{
-        background: 'rgba(255,107,53,0.12)',
-        border: `1px solid ${theme.primary}33`,
+        background: 'rgba(255,107,53,0.08)',
+        border: '1px solid rgba(255,107,53,0.2)',
         borderRadius: '14px',
         padding: '16px 20px',
         marginBottom: '32px',
         textAlign: 'left',
         animation: 'archetypeFadeUp 0.5s ease-out 0.6s forwards',
         opacity: 0,
-        boxShadow: `0 0 24px ${theme.glow}`,
       }}>
         <p style={{
           fontFamily: "'Inter', sans-serif",
@@ -371,7 +364,7 @@ function ArchetypeReveal({
         <p style={{
           fontFamily: "'Inter', sans-serif",
           fontSize: '13px',
-          color: '#ff6b35',
+          color: '#8b96a5',
           lineHeight: 1.5,
         }}>
           Curated for your archetype. Article 1 is waiting.
@@ -396,7 +389,7 @@ function ArchetypeReveal({
         style={{
           width: '100%',
           padding: '16px',
-          background: submitting ? '#2a3340' : theme.primary,
+          background: submitting ? '#2a3340' : '#ff6b35',
           color: submitting ? '#6b7685' : 'white',
           border: 'none',
           borderRadius: '12px',
@@ -408,13 +401,13 @@ function ArchetypeReveal({
           outline: 'none',
           animation: 'archetypeFadeUp 0.5s ease-out 0.8s forwards',
           opacity: 0,
-          boxShadow: submitting ? 'none' : `0 4px 20px ${theme.glow}`,
+          boxShadow: submitting ? 'none' : '0 4px 20px rgba(255,107,53,0.3)',
         }}
         onMouseEnter={(e) => {
-          if (!submitting) (e.currentTarget as HTMLButtonElement).style.opacity = '0.85'
+          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#e05a28'
         }}
         onMouseLeave={(e) => {
-          if (!submitting) (e.currentTarget as HTMLButtonElement).style.opacity = '1'
+          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35'
         }}
       >
         {submitting ? 'Setting up your path...' : 'Start reading →'}
