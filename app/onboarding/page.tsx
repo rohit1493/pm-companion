@@ -19,9 +19,13 @@ export default async function OnboardingPage() {
       cookies: {
         getAll() { return cookieStore.getAll() },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Cookie writes not allowed in Server Component render — non-fatal
+          }
         },
       },
     }

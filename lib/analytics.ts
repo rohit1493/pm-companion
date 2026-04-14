@@ -5,13 +5,14 @@
 
 import * as amplitude from '@amplitude/unified'
 
-const API_KEY = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY || 'e9a52ad6335333f23e2ac78e97da01d7'
+const API_KEY = process.env.NEXT_PUBLIC_AMPLITUDE_API_KEY || ''
 
 let initialised = false
 
 export function initAmplitude() {
   if (typeof window === 'undefined') return
   if (initialised) return
+  if (!API_KEY) return
   amplitude.initAll(API_KEY, {
     analytics: { autocapture: true },
     // 10% sample rate — increase only for specific debugging. 100% is expensive at scale.
