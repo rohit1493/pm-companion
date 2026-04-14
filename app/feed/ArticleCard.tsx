@@ -100,17 +100,20 @@ export default function ArticleCard({
     }
   }, [article.id, onGatePassed])
 
-  // Track time when tab is hidden (user is reading)
+  // Track time when tab is hidden (user is reading).
+  // Active in both 'reading' and 'returned_fail' so user never needs to click
+  // "Keep reading" — switching back to the article tab resumes the timer automatically.
   useEffect(() => {
-    if (gateState !== 'reading') return
+    if (gateState !== 'reading' && gateState !== 'returned_fail') return
 
     function handleVisibilityChange() {
       if (document.hidden) {
-        // App tab hidden = user switched to article tab — start timing
+        // User switched away to read — start/resume timing, show reading state
         startRef.current = Date.now()
         isReadingRef.current = true
+        setGateState('reading')
       } else {
-        // App tab visible = user returned from article tab
+        // User returned from article tab
         if (isReadingRef.current && startRef.current) {
           const elapsed = Math.floor((Date.now() - startRef.current) / 1000)
           isReadingRef.current = false
@@ -136,7 +139,7 @@ export default function ArticleCard({
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [gateState, saveTime])
+  }, [gateState, saveTime, timeAccumulated])
 
   function handleReadClick() {
     window.open(article.url, '_blank', 'noopener,noreferrer')
@@ -319,10 +322,10 @@ export default function ArticleCard({
                 color: '#f87171',
                 marginBottom: '4px',
               }}>
-                Almost there!
+                Almost there — ~{remaining}s more
               </p>
-              <p style={{ fontSize: '13px', color: '#f87171', fontFamily: "'Inter', sans-serif" }}>
-                You need ~{remaining}s more. Give it another read.
+              <p style={{ fontSize: '13px', color: '#8b96a5', fontFamily: "'Inter', sans-serif" }}>
+                Switch back to the article tab to keep reading. Timer resumes automatically.
               </p>
             </div>
             <button
@@ -330,18 +333,18 @@ export default function ArticleCard({
               style={{
                 width: '100%',
                 padding: '12px',
-                background: '#161e28',
-                color: '#ff6b35',
-                border: '1.5px solid #ff6b35',
+                background: 'transparent',
+                color: '#6b7685',
+                border: '1px solid #2a3340',
                 borderRadius: '10px',
                 fontFamily: "'Inter', sans-serif",
-                fontSize: '14px',
-                fontWeight: 500,
+                fontSize: '13px',
+                fontWeight: 400,
                 cursor: 'pointer',
                 outline: 'none',
               }}
             >
-              Keep reading →
+              Re-open article →
             </button>
           </div>
         )}
