@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
     topics,
   } = body
 
-  if (!session_id) {
-    return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (!session_id || !UUID_REGEX.test(session_id)) {
+    return NextResponse.json({ error: 'Invalid session_id' }, { status: 400 })
   }
 
   // Validate archetype if provided

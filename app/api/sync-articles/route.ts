@@ -40,6 +40,14 @@ function stripHtml(html: string): string {
   return html?.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() || ''
 }
 
+function stripJsonFences(raw: string): string {
+  return raw
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/, '')
+    .trim()
+}
+
 async function isUrlAlive(url: string): Promise<boolean> {
   try {
     const res = await fetch(url, {
@@ -87,11 +95,11 @@ async function callGroq(prompt: string): Promise<Record<string, unknown> | null>
     })
     const msg = await client.chat.completions.create({
       model: 'llama-3.1-8b-instant',
-      max_tokens: 600,
+      max_tokens: 1200,
       messages: [{ role: 'user', content: prompt }],
     })
     const text = msg.choices[0]?.message?.content ?? ''
-    return JSON.parse(text.trim())
+    return JSON.parse(stripJsonFences(text))
   } catch {
     return null
   }
@@ -220,6 +228,14 @@ export async function GET(request: NextRequest) {
   for (const article of (toEnrich || [])) {
     const data = await enrichArticle(article)
     if (!data) continue
+
+    // Validate critical fields — log if quiz data is missing
+    if (!data.quiz_q1 || !data.quiz_a1) {
+      console.warn(`Article "${article.title}" missing quiz_q1/a1 after enrichment`)
+    }
+    if (!data.category || !(ALLOWED_CATEGORIES as readonly string[]).includes(data.category)) {
+      // Retry path is already handled inside enrichArticle — is_active will be false
+    }
 
     await supabaseAdmin
       .from('articles')

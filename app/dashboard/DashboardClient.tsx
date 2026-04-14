@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import { analytics } from '@/lib/analytics'
+import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
+import { getAvatarComponent } from '@/components/avatars'
+import { getTheme } from '@/lib/archetype-themes'
 
 type DashboardData = {
   streak: number
@@ -40,11 +43,13 @@ type DashboardData = {
   quizSessions: number
 }
 
-function StatCard({ value, label, accent }: { value: string | number; label: string; accent?: boolean }) {
+function StatCard({ value, label, accent, accentColor }: { value: string | number; label: string; accent?: boolean; accentColor?: string }) {
+  const bgColor = accent ? (accentColor ?? 'var(--archetype-primary)') : '#121821'
+  const borderColor = accent ? (accentColor ?? 'var(--archetype-primary)') : '#2a3340'
   return (
     <div style={{
-      background: accent ? '#ff6b35' : '#121821',
-      border: `1px solid ${accent ? '#ff6b35' : '#2a3340'}`,
+      background: bgColor,
+      border: `1px solid ${borderColor}`,
       borderRadius: '14px',
       padding: '20px',
       flex: 1,
@@ -84,10 +89,14 @@ export default function DashboardClient() {
   useEffect(() => {
     fetch('/api/dashboard')
       .then((r) => {
+        if (r.status === 401) {
+          window.location.href = '/auth'
+          return null
+        }
         if (!r.ok) throw new Error('Failed to load dashboard')
         return r.json()
       })
-      .then((d) => { setData(d); setLoading(false) })
+      .then((d) => { if (d) { setData(d); setLoading(false) } })
       .catch(() => { setFetchError(true); setLoading(false) })
 
     const supabase = createClient()
@@ -107,8 +116,14 @@ export default function DashboardClient() {
     })
   }
 
+  const archetypeKey = data?.archetype ?? null
+  useArchetypeTheme(archetypeKey)
+  const theme = getTheme(archetypeKey)
+  const AvatarComponent = getAvatarComponent(archetypeKey)
+
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0f14', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: theme.bgGradient, transition: 'background 1.2s ease-in-out', fontFamily: "'Inter', sans-serif" }}>
+      <div className="grain-overlay" />
       {/* Header */}
       <header style={{ background: '#121821', borderBottom: '1px solid #2a3340', position: 'sticky', top: 0, zIndex: 10 }}>
         <div style={{
@@ -287,7 +302,7 @@ export default function DashboardClient() {
             Your progress
           </h1>
           <p style={{ fontSize: '14px', color: '#6b7685' }}>
-            {loading ? '...' : data?.readToday ? 'You read today. Keep it up.' : 'Read today to extend your streak.'}
+            {loading ? '...' : data?.readToday ? 'Done for today. See you tomorrow.' : 'You haven\'t read today. Your streak resets at midnight.'}
           </p>
         </div>
 
@@ -335,42 +350,73 @@ export default function DashboardClient() {
               <div style={{
                 background: 'linear-gradient(135deg, #1a1208 0%, #2d1a0e 100%)',
                 borderRadius: '16px',
-                padding: '24px',
                 marginBottom: '16px',
                 color: 'white',
+                overflow: 'hidden',
               }}>
-                <p style={{
-                  fontFamily: "'Inter', sans-serif",
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: '#ffb89a',
-                  marginBottom: '8px',
+                {/* Avatar + name section */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '32px 24px 24px',
+                  background: `radial-gradient(ellipse at top, ${theme.glow} 0%, transparent 60%)`,
+                  textAlign: 'center',
                 }}>
-                  You are
-                </p>
-                <h2 style={{
-                  fontFamily: "'Manrope', sans-serif",
-                  fontSize: '24px',
-                  fontWeight: 400,
-                  color: 'white',
-                  marginBottom: '6px',
-                }}>
-                  {data.archetypeDisplay}
-                </h2>
-                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#ffb89a', lineHeight: 1.5 }}>
-                  {data.archetypeTagline}
-                </p>
+                  <div
+                    className="avatar-float"
+                    style={{
+                      width: '80px',
+                      height: '80px',
+                      borderRadius: '50%',
+                      background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: '16px',
+                      border: `1px solid ${theme.primary}33`,
+                    }}
+                  >
+                    <AvatarComponent
+                      size={64}
+                      primaryColor={theme.primary}
+                      secondaryColor={theme.secondary}
+                      animated={true}
+                    />
+                  </div>
+                  <p style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    letterSpacing: '0.12em',
+                    textTransform: 'uppercase',
+                    color: 'var(--archetype-secondary)',
+                    marginBottom: '8px',
+                  }}>
+                    You are
+                  </p>
+                  <h2 style={{
+                    fontFamily: "'Manrope', sans-serif",
+                    fontSize: '24px',
+                    fontWeight: 400,
+                    color: 'var(--archetype-primary)',
+                    marginBottom: '6px',
+                  }}>
+                    {data.archetypeDisplay}
+                  </h2>
+                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: 'var(--archetype-secondary)', lineHeight: 1.5 }}>
+                    {data.archetypeTagline}
+                  </p>
+                </div>
 
                 {/* Path progress */}
                 {data.totalInPath > 0 && (
-                  <div style={{ marginTop: '20px' }}>
+                  <div style={{ padding: '0 24px 24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: '#ffb89a' }}>
+                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: 'var(--archetype-secondary)' }}>
                         10-article path
                       </span>
-                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: '#ffb89a' }}>
+                      <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: 'var(--archetype-secondary)' }}>
                         {data.completedCount} / {data.totalInPath}
                       </span>
                     </div>
@@ -378,7 +424,7 @@ export default function DashboardClient() {
                       <div style={{
                         height: '100%',
                         width: `${data.totalInPath > 0 ? (data.completedCount / data.totalInPath) * 100 : 0}%`,
-                        background: '#ff6b35',
+                        background: 'var(--archetype-primary)',
                         borderRadius: '99px',
                         transition: 'width 600ms ease',
                         minWidth: data.completedCount > 0 ? '6px' : '0',
@@ -405,9 +451,9 @@ export default function DashboardClient() {
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: data.dojoScore >= 75 ? '#ff6b35' : '#161e28',
+                  background: data.dojoScore >= 75 ? 'var(--archetype-secondary)' : '#161e28',
                   border: '3px solid',
-                  borderColor: data.dojoScore >= 75 ? '#ff6b35' : '#2a3340',
+                  borderColor: data.dojoScore >= 75 ? 'var(--archetype-secondary)' : '#2a3340',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -427,7 +473,7 @@ export default function DashboardClient() {
                     PM Dojo Score
                   </p>
                   <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5' }}>
-                    {data.dojoScore >= 75 ? 'Strong performance across your quizzes.' : 'Keep reading and quizzing to improve.'}
+                    {data.dojoScore >= 75 ? 'Sharp recall. You\'re in the top tier.' : 'Quiz more accurately to push your Dojo Score above 75.'}
                   </p>
                 </div>
               </div>
@@ -461,7 +507,7 @@ export default function DashboardClient() {
                     fontFamily: "'Inter', sans-serif",
                     fontSize: '14px',
                     fontWeight: 500,
-                    color: '#ff6b35',
+                    color: 'var(--archetype-primary)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -515,7 +561,7 @@ export default function DashboardClient() {
                       <div style={{
                         width: '100%',
                         aspectRatio: '1',
-                        background: day.read ? '#ff6b35' : '#1e2a38',
+                        background: day.read ? 'var(--archetype-primary)' : '#1e2a38',
                         borderRadius: '8px',
                         marginBottom: '6px',
                         display: 'flex',
@@ -558,7 +604,7 @@ export default function DashboardClient() {
                         <div style={{
                           height: '100%',
                           width: `${skill.percent}%`,
-                          background: skill.percent >= 100 ? '#4ade80' : '#ff6b35',
+                          background: skill.percent >= 100 ? '#4ade80' : 'var(--archetype-primary)',
                           borderRadius: '99px',
                           transition: 'width 600ms ease',
                           minWidth: skill.count > 0 ? '6px' : '0',

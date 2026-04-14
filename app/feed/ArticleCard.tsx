@@ -283,7 +283,7 @@ export default function ArticleCard({
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#e05a28' }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35' }}
           >
-            Read Article →
+            Read Article {row.position} →
           </button>
         )}
 
@@ -300,7 +300,7 @@ export default function ArticleCard({
               Reading Article {row.position}...
             </p>
             <p style={{ fontSize: '13px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
-              Come back when you&apos;re done — we&apos;re tracking your time.
+              Come back when you&apos;re done to unlock the next one.
             </p>
           </div>
         )}

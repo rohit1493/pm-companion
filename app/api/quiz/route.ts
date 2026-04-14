@@ -110,15 +110,19 @@ export async function POST(request: NextRequest) {
   }
 
   // Save quiz session
-  await supabaseAdmin.from('quiz_sessions').insert({
+  const { error: sessionError } = await supabaseAdmin.from('quiz_sessions').insert({
     user_id: user.id,
     articles_covered: article_ids,
     total_questions: total_questions || 0,
     correct_answers: correct_answers || 0,
   })
+  if (sessionError) {
+    console.error('quiz_sessions insert failed:', sessionError)
+    return NextResponse.json({ error: 'Failed to record quiz session' }, { status: 500 })
+  }
 
   // Mark articles as completed in user_progress
-  await supabaseAdmin
+  const { error: progressError } = await supabaseAdmin
     .from('user_progress')
     .update({
       completed: true,
@@ -129,6 +133,10 @@ export async function POST(request: NextRequest) {
     })
     .eq('user_id', user.id)
     .in('article_id', article_ids)
+  if (progressError) {
+    console.error('user_progress update failed:', progressError)
+    return NextResponse.json({ error: 'Failed to update article progress' }, { status: 500 })
+  }
 
   // Update streak (unified system via user_profiles)
   const now = new Date()
@@ -148,13 +156,18 @@ export async function POST(request: NextRequest) {
     ? currentStreak + 1
     : 1
 
-  await supabaseAdmin
+  const { error: streakError } = await supabaseAdmin
     .from('user_profiles')
     .update({
       streak: newStreak,
       streak_last_updated: now.toISOString(),
     })
     .eq('user_id', user.id)
+  if (streakError) {
+    console.error('streak update failed:', streakError)
+    // Non-fatal: still return success but log the streak failure
+    // The client will see a slightly stale streak on next load
+  }
 
   return NextResponse.json({ success: true, streak: newStreak })
 }

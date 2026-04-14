@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import ArticleCard from './ArticleCard'
@@ -8,6 +8,9 @@ import QuizCard from './QuizCard'
 import KeyInsightCard from './KeyInsightCard'
 import UnlockAnimation from './UnlockAnimation'
 import { analytics, identifyUser } from '@/lib/analytics'
+import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
+import { getAvatarComponent } from '@/components/avatars'
+import { getTheme } from '@/lib/archetype-themes'
 
 // --- TYPES ---
 
@@ -351,6 +354,8 @@ export default function FeedClient() {
   const [userEmail, setUserEmail] = useState('')
   const [error, setError] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const identifiedRef = useRef(false)
+  const pathCompleteTrackedRef = useRef(false)
 
   const loadFeed = useCallback(async () => {
     setPhase('loading')
@@ -370,8 +375,9 @@ export default function FeedClient() {
         // quiz banner appearing = quiz triggered
         if (data.quizReady) analytics.quizTriggered(data.quizArticleIds?.length ?? 0)
         // path complete
-        if (data.current === null && data.completedCount > 0 && data.completedCount === data.totalInPath) {
+        if (data.current === null && data.completedCount > 0 && data.completedCount === data.totalInPath && !pathCompleteTrackedRef.current) {
           analytics.pathComplete(data.totalInPath, null)
+          pathCompleteTrackedRef.current = true
         }
       }
     } catch {
@@ -386,7 +392,10 @@ export default function FeedClient() {
     supabaseClient.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { window.location.href = '/auth'; return }
       if (user?.email) setUserEmail(user.email)
-      if (user?.id) identifyUser(user.id, { email: user.email || '' })
+      if (user?.id && !identifiedRef.current) {
+        identifyUser(user.id, { email: user.email || '' })
+        identifiedRef.current = true
+      }
 
       const sessionId = localStorage.getItem('pm_session_id')
       if (sessionId) {
@@ -412,18 +421,28 @@ export default function FeedClient() {
     setPhase('unlocking')
   }
 
-  function handleUnlockComplete() {
-    fetch('/api/feed')
-      .then((r) => r.json())
-      .then((data: FeedData) => {
-        setFeedData(data)
-        if (data.viewType === 'path' && data.quizReady) {
-          setPhase('quiz')
-        } else {
-          setPhase('feed')
+  async function handleUnlockComplete() {
+    try {
+      const r = await fetch('/api/feed')
+      if (r.status === 401) {
+        window.location.href = '/auth'
+        return
+      }
+      if (!r.ok) throw new Error('Failed to load feed')
+      const data: FeedData = await r.json()
+      setFeedData(data)
+      if (data.viewType === 'path' && data.quizReady) {
+        if (!data.quizArticleIds?.length) {
+          loadFeed()
+          return
         }
-      })
-      .catch(() => { setPhase('feed') })
+        setPhase('quiz')
+      } else {
+        setPhase('feed')
+      }
+    } catch {
+      setPhase('feed')
+    }
   }
 
   function handleQuizComplete(result: QuizResult & { newStreak?: number }) {
@@ -447,8 +466,14 @@ export default function FeedClient() {
   const pathData = isPath ? (feedData as PathFeedData) : null
   const scannerData = !isPath ? (feedData as ScannerFeedData) : null
 
+  const archetypeKey = feedData?.archetypeDisplay ?? null
+  useArchetypeTheme(archetypeKey)
+  const theme = getTheme(archetypeKey)
+  const AvatarComponent = getAvatarComponent(archetypeKey)
+
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0f14', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: theme.bgGradient, transition: 'background 1.2s ease-in-out', fontFamily: "'Inter', sans-serif" }}>
+      <div className="grain-overlay" />
       {/* Header */}
       <header style={{
         background: '#121821',
@@ -641,7 +666,7 @@ export default function FeedClient() {
         )}
 
         {/* QUIZ PHASE */}
-        {phase === 'quiz' && pathData && (
+        {phase === 'quiz' && pathData && (pathData.quizArticleIds?.length ?? 0) > 0 && (
           <QuizCard
             articleIds={pathData.quizArticleIds}
             onComplete={handleQuizComplete}
@@ -663,15 +688,42 @@ export default function FeedClient() {
             {/* Archetype identity header */}
             {feedData.archetypeDisplay && (
               <div style={{ marginBottom: '24px' }}>
-                <h1 style={{
-                  fontFamily: "'Manrope', sans-serif",
-                  fontSize: '22px',
-                  fontWeight: 400,
-                  color: '#f6fafe',
-                  marginBottom: '4px',
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '16px',
                 }}>
-                  {feedData.archetypeDisplay}
-                </h1>
+                  <div
+                    className="avatar-float"
+                    style={{
+                      flexShrink: 0,
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <AvatarComponent
+                      size={32}
+                      primaryColor={theme.primary}
+                      secondaryColor={theme.secondary}
+                      animated={false}
+                    />
+                  </div>
+                  <h1 style={{
+                    fontFamily: "'Manrope', sans-serif",
+                    fontSize: '22px',
+                    fontWeight: 400,
+                    color: '#f6fafe',
+                    marginBottom: '0',
+                  }}>
+                    {feedData.archetypeDisplay}
+                  </h1>
+                </div>
                 <p style={{ fontSize: '14px', color: '#6b7685' }}>
                   {feedData.archetypeTagline}
                 </p>
@@ -685,7 +737,9 @@ export default function FeedClient() {
 
                 {pathData.quizReady && (
                   <div style={{
-                    background: 'linear-gradient(135deg, #ff6b35 0%, #ff8c5a 100%)',
+                    border: `1px solid ${theme.primary}`,
+                    boxShadow: `0 0 16px ${theme.glow}`,
+                    background: `${theme.primary}18`,
                     borderRadius: '14px',
                     padding: '16px 20px',
                     marginBottom: '16px',
@@ -694,38 +748,51 @@ export default function FeedClient() {
                     justifyContent: 'space-between',
                     cursor: 'pointer',
                   }}
-                  onClick={() => { analytics.quizStarted(pathData.quizArticleIds.length); setPhase('quiz') }}
+                  onClick={() => {
+                    if (!pathData?.quizArticleIds?.length) {
+                      loadFeed()
+                      return
+                    }
+                    analytics.quizStarted(pathData.quizArticleIds.length)
+                    setPhase('quiz')
+                  }}
                   >
                     <div>
-                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: 'white', marginBottom: '2px' }}>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: 'var(--archetype-primary)', marginBottom: '2px' }}>
                         ⚡ Quiz ready
                       </p>
-                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
+                      <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', color: '#8b96a5' }}>
                         Test what you&apos;ve learned
                       </p>
                     </div>
-                    <span style={{ color: 'white', fontSize: '20px' }}>→</span>
+                    <span style={{ color: 'var(--archetype-primary)', fontSize: '20px' }}>→</span>
                   </div>
                 )}
 
                 {pathData.current && (
-                  <ArticleCard
-                    row={pathData.current}
-                    totalInPath={pathData.totalInPath}
-                    onGatePassed={handleGatePassed}
-                  />
+                  <div className="feed-card-enter-1">
+                    <ArticleCard
+                      row={pathData.current}
+                      totalInPath={pathData.totalInPath}
+                      onGatePassed={handleGatePassed}
+                    />
+                  </div>
                 )}
 
                 {pathData.next && !pathData.current?.read_gate_passed && (
-                  <LockedCard row={pathData.next} totalInPath={pathData.totalInPath} />
+                  <div className="feed-card-enter-2">
+                    <LockedCard row={pathData.next} totalInPath={pathData.totalInPath} />
+                  </div>
                 )}
 
                 {pathData.next && pathData.current?.read_gate_passed && (
-                  <ArticleCard
-                    row={pathData.next}
-                    totalInPath={pathData.totalInPath}
-                    onGatePassed={handleGatePassed}
-                  />
+                  <div className="feed-card-enter-2">
+                    <ArticleCard
+                      row={pathData.next}
+                      totalInPath={pathData.totalInPath}
+                      onGatePassed={handleGatePassed}
+                    />
+                  </div>
                 )}
 
                 {pathData.current === null && pathData.completedCount === pathData.totalInPath && pathData.totalInPath > 0 && (
@@ -837,8 +904,10 @@ export default function FeedClient() {
                       <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px' }}>No articles yet. Check back soon.</p>
                     </div>
                   ) : (
-                    scannerData.articles.map((article) => (
-                      <ScannerCard key={article.id} article={article} />
+                    scannerData.articles.map((article, index) => (
+                      <div key={article.id} className={`feed-card-enter-${Math.min(index + 1, 4)}`}>
+                        <ScannerCard article={article} />
+                      </div>
                     ))
                   )}
                 </div>

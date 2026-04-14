@@ -150,12 +150,14 @@ export async function GET() {
       }).filter(Boolean)
     )
 
-    const { data: freshArticles } = await supabaseAdmin
+    let freshQuery = supabaseAdmin
       .from('articles')
       .select('id, category, difficulty')
       .eq('is_active', true)
-      .not('id', 'in', `(${[...existingIds].join(',')})`)
-      .limit(100)
+    if (existingIds.size > 0) {
+      freshQuery = freshQuery.not('id', 'in', `(${[...existingIds].join(',')})`)
+    }
+    const { data: freshArticles } = await freshQuery.limit(100)
 
     if (freshArticles && freshArticles.length > 0) {
       const archetype = ARCHETYPES[profile.archetype as ArchetypeKey] ?? ARCHETYPES.scanner
