@@ -1,50 +1,70 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Metadata } from 'next'
+import { getTheme } from '@/lib/archetype-themes'
+import { FANGClimberAvatar } from '@/components/avatars/FANGClimberAvatar'
+import { StartupClimberAvatar } from '@/components/avatars/StartupClimberAvatar'
+import { AIFirstPMAvatar } from '@/components/avatars/AIFirstPMAvatar'
+import { GrowthPMAvatar } from '@/components/avatars/GrowthPMAvatar'
+import { ScannerAvatar } from '@/components/avatars/ScannerAvatar'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://pm-companion-six.vercel.app'
+
 async function getShareData(userId: string) {
-  const { data: readDays } = await supabaseAdmin
-    .from('daily_articles')
-    .select('assigned_date')
-    .eq('user_id', userId)
-    .eq('read', true)
-    .order('assigned_date', { ascending: false })
+  const [profileRes, progressRes] = await Promise.all([
+    supabaseAdmin
+      .from('user_profiles')
+      .select('streak, archetype, archetype_display, archetype_tagline')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabaseAdmin
+      .from('user_progress')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('completed', true),
+  ])
 
-  if (!readDays || readDays.length === 0) return { streak: 0, totalRead: 0 }
+  const profile = profileRes.data
+  const totalCompleted = progressRes.count ?? 0
 
-  const today = new Date().toISOString().split('T')[0]
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
-  const readToday = readDays[0].assigned_date === today
-
-  let streak = 0
-  let checkDate = readToday ? today : yesterday
-  for (const row of readDays) {
-    if (row.assigned_date === checkDate) {
-      streak++
-      const d = new Date(checkDate)
-      d.setDate(d.getDate() - 1)
-      checkDate = d.toISOString().split('T')[0]
-    } else break
+  return {
+    streak: profile?.streak ?? 0,
+    totalCompleted,
+    archetype: profile?.archetype ?? null,
+    archetypeDisplay: profile?.archetype_display ?? 'PM Dojo',
+    archetypeTagline: profile?.archetype_tagline ?? '',
   }
-  if (!readToday && readDays[0].assigned_date !== yesterday) streak = 0
+}
 
-  return { streak, totalRead: readDays.length }
+function AvatarForArchetype({ archetype, size, primaryColor, secondaryColor, tertiaryColor }: {
+  archetype: string | null
+  size: number
+  primaryColor: string
+  secondaryColor: string
+  tertiaryColor: string
+}) {
+  const props = { size, primaryColor, secondaryColor, tertiaryColor, animated: false }
+  if (archetype === 'startup_climber') return <StartupClimberAvatar {...props} />
+  if (archetype === 'ai_first_pm') return <AIFirstPMAvatar {...props} />
+  if (archetype === 'growth_pm') return <GrowthPMAvatar {...props} />
+  if (archetype === 'scanner') return <ScannerAvatar {...props} />
+  return <FANGClimberAvatar {...props} />
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ userId: string }> }): Promise<Metadata> {
   const { userId } = await params
-  const { streak, totalRead } = await getShareData(userId)
+  const { streak, totalCompleted, archetypeDisplay } = await getShareData(userId)
 
   return {
-    title: `${streak} day streak on PM Dojo`,
-    description: `I've read ${totalRead} PM articles and built a ${streak}-day reading streak. Join me on PM Dojo.`,
+    title: `${streak} day streak — ${archetypeDisplay} on PM Dojo`,
+    description: `I've completed ${totalCompleted} articles and built a ${streak}-day reading streak on PM Dojo. Every PM is drowning in content but starving for progress — PM Dojo tells you exactly what to read next.`,
     openGraph: {
       title: `${streak} day streak 🔥`,
-      description: `${totalRead} articles read on PM Dojo`,
+      description: `${totalCompleted} articles completed · ${archetypeDisplay}`,
       siteName: 'PM Dojo',
     },
   }
@@ -52,111 +72,167 @@ export async function generateMetadata({ params }: { params: Promise<{ userId: s
 
 export default async function SharePage({ params }: { params: Promise<{ userId: string }> }) {
   const { userId } = await params
-  const { streak, totalRead } = await getShareData(userId)
-
-  const streakEmoji = streak >= 7 ? '🔥' : streak >= 3 ? '⚡' : '📖'
+  const { streak, totalCompleted, archetype, archetypeDisplay, archetypeTagline } = await getShareData(userId)
+  const theme = getTheme(archetype)
+  const streakEmoji = streak >= 14 ? '🔥' : streak >= 7 ? '⚡' : streak >= 3 ? '📈' : '📖'
 
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+      background: theme.bgGradient,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px',
-      fontFamily: "'DM Sans', sans-serif",
+      fontFamily: "'Inter', sans-serif",
     }}>
-      <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 
       <div style={{
-        background: 'white',
+        background: 'rgba(255,255,255,0.05)',
+        border: `1px solid ${theme.primary}33`,
         borderRadius: '24px',
-        padding: '48px 40px',
-        maxWidth: '440px',
+        padding: '40px 32px',
+        maxWidth: '400px',
         width: '100%',
         textAlign: 'center',
-        boxShadow: '0 32px 80px rgba(0,0,0,0.25)',
+        boxShadow: `0 32px 80px rgba(0,0,0,0.4), 0 0 60px ${theme.glow}`,
+        backdropFilter: 'blur(12px)',
       }}>
-        {/* Logo */}
+
+        {/* PM Dojo wordmark */}
         <p style={{
-          fontFamily: "'Instrument Serif', serif",
-          fontSize: '16px',
-          color: '#94A3B8',
-          marginBottom: '32px',
-          letterSpacing: '0.01em',
+          fontFamily: "'Manrope', sans-serif",
+          fontSize: '12px',
+          fontWeight: 700,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: theme.primary,
+          marginBottom: '28px',
         }}>
           PM Dojo
         </p>
 
-        {/* Streak display */}
+        {/* Avatar */}
         <div style={{
-          width: '96px',
-          height: '96px',
-          background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-          borderRadius: '24px',
+          width: '88px',
+          height: '88px',
+          margin: '0 auto 20px',
+          borderRadius: '50%',
+          background: `${theme.primary}18`,
+          border: `2px solid ${theme.primary}44`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          margin: '0 auto 24px',
-          fontSize: '40px',
         }}>
-          {streakEmoji}
+          <AvatarForArchetype
+            archetype={archetype}
+            size={60}
+            primaryColor={theme.primary}
+            secondaryColor={theme.secondary}
+            tertiaryColor={theme.tertiary}
+          />
         </div>
 
+        {/* Archetype name */}
         <p style={{
-          fontFamily: "'Instrument Serif', serif",
-          fontSize: '56px',
-          fontWeight: 400,
-          color: '#1E293B',
-          lineHeight: 1,
-          marginBottom: '8px',
+          fontFamily: "'Manrope', sans-serif",
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: theme.primary,
+          marginBottom: '4px',
         }}>
-          {streak}
+          {archetypeDisplay}
         </p>
-        <p style={{
-          fontSize: '18px',
-          fontWeight: 600,
-          color: '#4F46E5',
-          marginBottom: '24px',
-          letterSpacing: '-0.01em',
-        }}>
-          day reading streak
-        </p>
-
-        <div style={{
-          background: '#F8FAFC',
-          borderRadius: '12px',
-          padding: '16px',
-          marginBottom: '32px',
-        }}>
-          <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6 }}>
-            I&apos;ve read <strong style={{ color: '#1E293B' }}>{totalRead} PM articles</strong> and built a {streak}-day streak on PM Dojo.
+        {archetypeTagline && (
+          <p style={{
+            fontSize: '13px',
+            color: 'rgba(255,255,255,0.45)',
+            lineHeight: 1.5,
+            marginBottom: '28px',
+          }}>
+            {archetypeTagline}
           </p>
+        )}
+
+        {/* Stats row */}
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          marginBottom: '28px',
+        }}>
+          <div style={{
+            flex: 1,
+            background: 'rgba(255,255,255,0.06)',
+            border: `1px solid ${theme.primary}22`,
+            borderRadius: '14px',
+            padding: '16px 12px',
+          }}>
+            <p style={{
+              fontFamily: "'Manrope', sans-serif",
+              fontSize: '36px',
+              fontWeight: 800,
+              color: '#f6fafe',
+              lineHeight: 1,
+              marginBottom: '4px',
+            }}>
+              {streak}{streakEmoji}
+            </p>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              day streak
+            </p>
+          </div>
+          <div style={{
+            flex: 1,
+            background: 'rgba(255,255,255,0.06)',
+            border: `1px solid ${theme.primary}22`,
+            borderRadius: '14px',
+            padding: '16px 12px',
+          }}>
+            <p style={{
+              fontFamily: "'Manrope', sans-serif",
+              fontSize: '36px',
+              fontWeight: 800,
+              color: '#f6fafe',
+              lineHeight: 1,
+              marginBottom: '4px',
+            }}>
+              {totalCompleted}
+            </p>
+            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              articles done
+            </p>
+          </div>
         </div>
 
+        {/* CTA */}
         <a
-          href="https://pm-companion-six.vercel.app"
+          href={APP_URL}
           style={{
             display: 'block',
-            background: '#4F46E5',
+            background: theme.primary,
             color: 'white',
             borderRadius: '12px',
             padding: '14px',
             textDecoration: 'none',
-            fontSize: '15px',
-            fontWeight: 600,
-            letterSpacing: '-0.01em',
+            fontSize: '14px',
+            fontWeight: 700,
+            fontFamily: "'Manrope', sans-serif",
+            letterSpacing: '0.04em',
           }}
         >
-          Start your streak →
+          Build your PM path →
         </a>
 
         <p style={{
-          fontSize: '12px',
-          color: '#CBD5E1',
-          marginTop: '16px',
+          fontSize: '11px',
+          color: 'rgba(255,255,255,0.2)',
+          marginTop: '14px',
+          letterSpacing: '0.04em',
         }}>
-          pm-companion-six.vercel.app
+          pmdojo.app
         </p>
       </div>
     </div>
