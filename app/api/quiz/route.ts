@@ -59,6 +59,11 @@ export async function GET(request: NextRequest) {
   }
   const questions: Question[] = []
 
+  // Collect all answers upfront — use as cross-distractors so options differ per question
+  const allAnswers: string[] = articles.flatMap((a) =>
+    [a.quiz_a1, a.quiz_a2].filter((ans): ans is string => !!ans)
+  )
+
   for (const article of articles) {
     if (article.quiz_q1 && article.quiz_a1) {
       questions.push({
@@ -67,7 +72,7 @@ export async function GET(request: NextRequest) {
         article_title: article.title,
         question: article.quiz_q1,
         correct_answer: article.quiz_a1,
-        options: shuffleOptions(article.quiz_a1, generateDistractors(article.quiz_a1)),
+        options: shuffleOptions(article.quiz_a1, getDistractors(article.quiz_a1, allAnswers)),
       })
     }
     if (article.quiz_q2 && article.quiz_a2 && questions.length < 4) {
@@ -77,7 +82,7 @@ export async function GET(request: NextRequest) {
         article_title: article.title,
         question: article.quiz_q2,
         correct_answer: article.quiz_a2,
-        options: shuffleOptions(article.quiz_a2, generateDistractors(article.quiz_a2)),
+        options: shuffleOptions(article.quiz_a2, getDistractors(article.quiz_a2, allAnswers)),
       })
     }
     if (questions.length >= 4) break
@@ -154,18 +159,30 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, streak: newStreak })
 }
 
-// Simple distractors for when questions don't have pre-made options
-function generateDistractors(correctAnswer: string): string[] {
-  // For short text answers, return generic alternatives
-  const length = correctAnswer.length
-  if (length < 20) {
-    return ['It reduces user engagement', 'It improves cost efficiency', 'It simplifies stakeholder communication']
-  }
-  return [
-    'Focus on feature quantity over quality',
-    'Prioritise engineering velocity above user needs',
-    'Measure success by internal metrics only',
-  ]
+// Use other articles' answers as cross-distractors — falls back to generic pool only if needed
+function getDistractors(correctAnswer: string, allAnswers: string[]): string[] {
+  // Other answers from the quiz batch are plausible but wrong — best distractors
+  const crossDistractors = allAnswers.filter((a) => a !== correctAnswer)
+  if (crossDistractors.length >= 3) return crossDistractors.slice(0, 3)
+
+  // Fallback pool — varied by answer length to stay contextually plausible
+  const isShort = correctAnswer.length < 25
+  const fallbacks = isShort
+    ? [
+        'Reduce time-to-market above all else',
+        'Maximise feature output per sprint',
+        'Optimise for internal stakeholder approval',
+        'Defer user research to post-launch',
+      ]
+    : [
+        'Focus on shipping features faster than competitors',
+        'Prioritise engineering velocity over user feedback loops',
+        'Measure success primarily through internal OKR completion',
+        'Treat qualitative signals as lower priority than quantitative data',
+      ]
+
+  // Mix cross-distractors with fallbacks so options are never identical across questions
+  return [...crossDistractors, ...fallbacks].slice(0, 3)
 }
 
 function shuffleOptions(correct: string, distractors: string[]): string[] {

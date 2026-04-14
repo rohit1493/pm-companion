@@ -16,7 +16,10 @@ const parser = new Parser({
 
 function estimateReadingTime(text: string): number {
   const words = text?.split(/\s+/).length || 0
-  return Math.max(1, Math.round(words / 200))
+  // RSS descriptions are excerpts (~100-200 words). Full articles are ~8x longer.
+  // PM articles typically run 800-1500 words → 4-8 min read at 200 wpm.
+  const estimatedFullWords = words * 8
+  return Math.max(3, Math.round(estimatedFullWords / 200))
 }
 
 function stripHtml(html: string): string {
@@ -60,7 +63,7 @@ Article summary: ${article.summary.slice(0, 500)}
 Generate:
 {
   "summary_short": "50-70 word Inshorts-style summary. Punchy, specific, no fluff.",
-  "key_insight": "Single most actionable sentence a PM can take away. Start with a verb.",
+  "key_insight": "2-3 sentences. The single most actionable insight a PM can apply this week. Start with the core idea, then give one concrete example or implication. End with what changes if you ignore this.",
   "hooks": ["One hook sentence using: specific pain + surprising claim + implied payoff. Written for a PM audience."],
   "quiz_q1": "Comprehension question about the article content (not recall). Multiple choice implied.",
   "quiz_a1": "Correct answer to quiz_q1 (1 sentence, max 12 words)",
