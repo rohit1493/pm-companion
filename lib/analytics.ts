@@ -47,6 +47,9 @@ export const analytics = {
   signedIn: () =>
     track('signed_in'),
 
+  googleSignedIn: () =>
+    track('google_signed_in'),
+
   // Onboarding
   onboardingStarted: () =>
     track('onboarding_started'),
