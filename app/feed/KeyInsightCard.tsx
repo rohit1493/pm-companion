@@ -48,6 +48,9 @@ export default function KeyInsightCard({
       padding: '28px 24px',
       marginBottom: '16px',
       color: 'white',
+      boxShadow: `0 0 32px var(--archetype-glow, rgba(255, 107, 53, 0.2))`,
+      animation: 'insightReveal 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+      animationFillMode: 'backwards',
     }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -92,6 +95,8 @@ export default function KeyInsightCard({
         color: 'white',
         lineHeight: 1.6,
         marginBottom: '28px',
+        animation: 'insightTextFade 0.6s ease-out 0.3s forwards',
+        opacity: 0,
       }}>
         &ldquo;{current.key_insight}&rdquo;
       </p>

@@ -22,6 +22,12 @@
   --indigo-dark: #e05a28;
   --indigo-light: rgba(255,107,53,0.12);
   --white: #121821;
+  /* Archetype theme variables — overridden by useArchetypeTheme hook */
+  --archetype-primary: #ff6b35;
+  --archetype-secondary: #ff8c5a;
+  --archetype-tertiary: #cc4400;
+  --archetype-glow: rgba(255, 107, 53, 0.3);
+  --archetype-bg: linear-gradient(135deg, #0b0f14 0%, #1a1208 100%);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,9 +40,244 @@ body {
   min-height: 100vh;
 }
 
+/* ============================================
+   ARCHETYPE REVEAL ANIMATIONS
+   ============================================ */
+
+@keyframes archetypeRevealScale {
+  from { opacity: 0; transform: scale(0.92) rotate(-4deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes archetypeRevealGlow {
+  0%, 100% { box-shadow: 0 0 0px var(--archetype-glow); }
+  50%       { box-shadow: 0 0 48px var(--archetype-glow), 0 0 96px var(--archetype-glow); }
+}
+
+@keyframes archetypeFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   FEED ENTRY ANIMATIONS
+   ============================================ */
+
+@keyframes feedCardEnter {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes feedHeaderEnter {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   QUIZ ANIMATIONS
+   ============================================ */
+
+@keyframes quizCorrectPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.02); }
+}
+
+@keyframes quizSuccessGlow {
+  from { box-shadow: 0 0 0px var(--archetype-glow); }
+  to   { box-shadow: 0 0 16px var(--archetype-glow); }
+}
+
+@keyframes checkmarkPop {
+  0%   { opacity: 0; transform: scale(0) rotate(-30deg); }
+  70%  { transform: scale(1.2) rotate(5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* ============================================
+   STREAK MILESTONE ANIMATIONS
+   ============================================ */
+
+@keyframes streakMilestoneSlideUp {
+  from { opacity: 0; transform: translateY(80px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes streakPulseBig {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.04); }
+}
+
+/* ============================================
+   KEY INSIGHT ANIMATIONS
+   ============================================ */
+
+@keyframes insightReveal {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes insightGlow {
+  from { box-shadow: 0 0 0px var(--archetype-glow); }
+  to   { box-shadow: 0 0 32px var(--archetype-glow); }
+}
+
+@keyframes insightTextFade {
+  from { opacity: 0; letter-spacing: 0.02em; }
+  to   { opacity: 1; letter-spacing: 0; }
+}
+
+/* ============================================
+   PATH COMPLETE ANIMATIONS
+   ============================================ */
+
+@keyframes pathCompleteOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pathCompleteCard {
+  from { opacity: 0; transform: translateY(60px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   AVATAR ANIMATIONS
+   ============================================ */
+
+@keyframes avatarEntrance {
+  0%   { opacity: 0; transform: scale(0.8) rotate(-15deg); }
+  70%  { transform: scale(1.05) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes avatarGlowPulse {
+  0%, 100% { filter: drop-shadow(0 0 0px var(--archetype-primary)); }
+  50%       { filter: drop-shadow(0 0 20px var(--archetype-primary)); }
+}
+
+@keyframes avatarFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+
+/* ============================================
+   PARTICLE + MISC
+   ============================================ */
+
+@keyframes particleBurst {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: var(--particle-end) scale(0); }
+}
+
+@keyframes grainTexture {
+  0%   { opacity: 0.03; }
+  50%  { opacity: 0.015; }
+  100% { opacity: 0.03; }
+}
+
+@keyframes unlockParticle {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0.3); }
+}
+
+/* ============================================
+   ARCHETYPE ACCENT CYCLING
+   The "Mood Shifts" — cycles accent through
+   the archetype's 3 colors every 45s
+   ============================================ */
+
+@keyframes accentCycle {
+  0%   { --archetype-primary: var(--archetype-primary); }
+  /* Note: Full implementation requires JS for dynamic values.
+     This keyframe is the CSS skeleton. The JS useArchetypeTheme
+     hook handles the actual cycling via setInterval. */
+}
+
+/* ============================================
+   GRAIN TEXTURE OVERLAY
+   Adds premium film-grain feel to backgrounds
+   ============================================ */
+
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.008) 2px,
+      rgba(255, 255, 255, 0.008) 4px
+    );
+  animation: grainTexture 8s ease-in-out infinite;
+}
+
+/* ============================================
+   ARCHETYPE BACKGROUND
+   Applied to page wrappers to use the
+   current archetype's background gradient
+   ============================================ */
+
+.archetype-bg {
+  background: var(--archetype-bg);
+  transition: background 1.2s ease-in-out;
+}
+
+/* ============================================
+   FEED ANIMATION CLASSES
+   ============================================ */
+
+.feed-header-enter {
+  animation: feedHeaderEnter 0.4s ease-out forwards;
+}
+
+.feed-card-enter-1 {
+  opacity: 0;
+  animation: feedCardEnter 0.4s ease-out 0.2s forwards;
+}
+
+.feed-card-enter-2 {
+  opacity: 0;
+  animation: feedCardEnter 0.4s ease-out 0.4s forwards;
+}
+
+.feed-card-enter-3 {
+  opacity: 0;
+  animation: feedCardEnter 0.4s ease-out 0.6s forwards;
+}
+
+.feed-card-enter-4 {
+  opacity: 0;
+  animation: feedCardEnter 0.4s ease-out 0.8s forwards;
+}
+
+/* ============================================
+   AVATAR CLASSES
+   ============================================ */
+
+.avatar-entrance {
+  animation: avatarEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.avatar-glow-pulse {
+  animation: avatarGlowPulse 2s ease-in-out;
+}
+
+.avatar-float {
+  animation: avatarFloat 3s ease-in-out infinite;
+}
+
+/* ============================================
+   ACCESSIBILITY
+   Respect reduced motion preferences
+   ============================================ */
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

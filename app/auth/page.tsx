@@ -115,7 +115,7 @@ export default function AuthPage() {
             PM Dojo
           </p>
           <p style={{ fontSize: '14px', color: '#6b7685' }}>
-            Your personalised PM learning path
+            Your PM path is waiting.
           </p>
         </div>
 
@@ -136,9 +136,9 @@ export default function AuthPage() {
           </h1>
           <p style={{ fontSize: '14px', color: '#8b96a5', marginBottom: '28px' }}>
             {mode === 'signin'
-              ? 'Welcome back. Enter your credentials to continue.'
+              ? 'Welcome back. Sign in to pick up where you left off.'
               : mode === 'signup'
-              ? 'Start your personalised PM learning journey.'
+              ? 'One step left — create your account to save your path.'
               : 'Enter your email and we\'ll send you a reset link.'}
           </p>
 

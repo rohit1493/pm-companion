@@ -6,6 +6,9 @@ import { assignArchetype, type Archetype } from '@/lib/archetypes'
 import LoadingScreen from './LoadingScreen'
 import { createClient } from '@/lib/supabase-browser'
 import { analytics } from '@/lib/analytics'
+import { getAvatarComponent } from '@/components/avatars'
+import { getTheme } from '@/lib/archetype-themes'
+import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
 
 // --- HELPERS ---
 
@@ -261,21 +264,49 @@ function ArchetypeReveal({
     return () => clearTimeout(t)
   }, [])
 
+  useArchetypeTheme(archetype?.key)
+
+  const AvatarComponent = getAvatarComponent(archetype?.key)
+  const theme = getTheme(archetype?.key)
+
   return (
     <div style={{
       opacity: visible ? 1 : 0,
       transform: visible ? 'scale(1)' : 'scale(0.96)',
-      transition: 'opacity 400ms ease, transform 400ms ease',
+      transition: 'opacity 400ms ease, transform 400ms ease, background 0.8s ease-in-out',
       textAlign: 'center',
       padding: '8px 0',
+      animation: visible ? 'archetypeRevealScale 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' : 'none',
+      background: theme.bgGradient,
     }}>
+      {/* Avatar */}
       <div style={{
-        fontSize: '56px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         marginBottom: '24px',
-        display: 'inline-block',
-        animation: visible ? 'bounce 0.6s ease 0.3s' : 'none',
       }}>
-        {archetype.emoji}
+        <div
+          className="avatar-entrance avatar-glow-pulse"
+          style={{
+            width: '128px',
+            height: '128px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: '50%',
+            background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`,
+            marginBottom: '16px',
+          }}
+        >
+          <AvatarComponent
+            size={96}
+            primaryColor={theme.primary}
+            secondaryColor={theme.secondary}
+            tertiaryColor={theme.tertiary}
+            animated={true}
+          />
+        </div>
       </div>
 
       <p style={{
@@ -294,7 +325,8 @@ function ArchetypeReveal({
         fontFamily: "'Manrope', sans-serif",
         fontSize: 'clamp(28px, 7vw, 36px)',
         fontWeight: 400,
-        color: '#f6fafe',
+        color: theme.primary,
+        textShadow: `0 0 20px ${theme.glow}`,
         lineHeight: 1.2,
         marginBottom: '16px',
         letterSpacing: '-0.02em',
@@ -310,17 +342,22 @@ function ArchetypeReveal({
         marginBottom: '32px',
         maxWidth: '320px',
         margin: '0 auto 32px',
+        animation: 'archetypeFadeUp 0.5s ease-out 0.3s forwards',
+        opacity: 0,
       }}>
         {archetype.tagline}
       </p>
 
       <div style={{
         background: 'rgba(255,107,53,0.12)',
-        border: '1px solid rgba(255,107,53,0.3)',
+        border: `1px solid ${theme.primary}33`,
         borderRadius: '14px',
         padding: '16px 20px',
         marginBottom: '32px',
         textAlign: 'left',
+        animation: 'archetypeFadeUp 0.5s ease-out 0.6s forwards',
+        opacity: 0,
+        boxShadow: `0 0 24px ${theme.glow}`,
       }}>
         <p style={{
           fontFamily: "'Inter', sans-serif",
@@ -359,7 +396,7 @@ function ArchetypeReveal({
         style={{
           width: '100%',
           padding: '16px',
-          background: submitting ? '#2a3340' : '#ff6b35',
+          background: submitting ? '#2a3340' : theme.primary,
           color: submitting ? '#6b7685' : 'white',
           border: 'none',
           borderRadius: '12px',
@@ -369,12 +406,15 @@ function ArchetypeReveal({
           cursor: submitting ? 'not-allowed' : 'pointer',
           transition: 'background 200ms ease',
           outline: 'none',
+          animation: 'archetypeFadeUp 0.5s ease-out 0.8s forwards',
+          opacity: 0,
+          boxShadow: submitting ? 'none' : `0 4px 20px ${theme.glow}`,
         }}
         onMouseEnter={(e) => {
-          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#e05a28'
+          if (!submitting) (e.currentTarget as HTMLButtonElement).style.opacity = '0.85'
         }}
         onMouseLeave={(e) => {
-          if (!submitting) (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35'
+          if (!submitting) (e.currentTarget as HTMLButtonElement).style.opacity = '1'
         }}
       >
         {submitting ? 'Setting up your path...' : 'Start reading →'}
