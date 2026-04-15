@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { assignArchetype, type Archetype } from '@/lib/archetypes'
 import LoadingScreen from './LoadingScreen'
@@ -491,15 +491,20 @@ export default function OnboardingFlow() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // Total steps per path (for progress bar)
+  // Total steps per path.
   const totalSteps = goal === 'stay_updated' ? 2 : goal === 'deep_skill' ? 4 : 5
+
+  // Stabilised total for the progress bar: on step 1 the goal hasn't been
+  // confirmed yet, so keep the label fixed at "Step 1 of 4" (4-step baseline)
+  // instead of jumping as the user clicks different options.
+  const progressBarTotal = step === 1 ? 5 : totalSteps
 
   function handleBack() {
     if (step === 3 && goal === 'deep_skill') {
-      setUpskillFocus('') // reset upskill focus when going back from step 3
+      setExperience('') // reset experience when going back from step 3 (deep_skill)
     }
     if (step === 4) {
-      setExperience('') // reset experience when going back from step 4
+      setTarget('') // reset target when going back from step 4
     }
     setStep((s) => s - 1)
   }
@@ -508,12 +513,12 @@ export default function OnboardingFlow() {
     setShowLoader(true)
   }
 
-  function handleLoaderComplete() {
+  const handleLoaderComplete = useCallback(() => {
     const a = assignArchetype(goal, target, upskillFocus)
     setArchetype(a)
     setStep(totalSteps)
     setShowLoader(false)
-  }
+  }, [goal, target, upskillFocus, totalSteps])
 
   async function handleStart() {
     if (!archetype) return
@@ -594,7 +599,7 @@ export default function OnboardingFlow() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
-      <ProgressBar current={step} total={totalSteps} />
+      <ProgressBar current={step} total={progressBarTotal} />
 
       <div style={{
         flex: 1,

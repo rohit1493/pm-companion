@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const LINES = [
   'Analysing your goals...',
@@ -12,16 +12,18 @@ const LINES = [
 export default function LoadingScreen({ onComplete }: { onComplete: () => void }) {
   const [lineIdx, setLineIdx] = useState(0)
   const [mounted, setMounted] = useState(false)
+  const onCompleteRef = useRef(onComplete)
+  onCompleteRef.current = onComplete
 
   useEffect(() => {
     // Fade in on mount
     const fadeIn = setTimeout(() => setMounted(true), 20)
     // Rotate status lines
     const interval = setInterval(() => setLineIdx(i => (i + 1) % LINES.length), 700)
-    // Hand off to reveal
-    const done = setTimeout(onComplete, 2800)
+    // Hand off to reveal — use ref so this effect never restarts due to callback identity changes
+    const done = setTimeout(() => onCompleteRef.current(), 2800)
     return () => { clearTimeout(fadeIn); clearInterval(interval); clearTimeout(done) }
-  }, [onComplete])
+  }, [])
 
   return (
     <div style={{
