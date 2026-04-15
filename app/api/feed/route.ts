@@ -51,6 +51,7 @@ export async function GET() {
 
     return NextResponse.json({
       viewType: 'scanner',
+      archetypeKey: profile?.archetype || 'scanner',
       archetypeDisplay: profile?.archetype_display || 'THE SCANNER',
       archetypeTagline: profile?.archetype_tagline || 'Reading widely. Thinking fast.',
       articles: articles || [],
@@ -253,6 +254,7 @@ export async function GET() {
 
   return NextResponse.json({
     viewType: 'path',
+    archetypeKey: profile.archetype || '',
     archetypeDisplay: profile.archetype_display || '',
     archetypeTagline: profile.archetype_tagline || '',
     totalInPath: rows.length,

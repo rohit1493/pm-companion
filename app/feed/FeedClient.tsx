@@ -47,6 +47,7 @@ type ProgressRow = {
 
 type PathFeedData = {
   viewType: 'path'
+  archetypeKey: string
   archetypeDisplay: string
   archetypeTagline: string
   totalInPath: number
@@ -60,6 +61,7 @@ type PathFeedData = {
 
 type ScannerFeedData = {
   viewType: 'scanner'
+  archetypeKey: string
   archetypeDisplay: string
   archetypeTagline: string
   articles: Article[]
@@ -469,7 +471,7 @@ export default function FeedClient() {
   const pathData = isPath ? (feedData as PathFeedData) : null
   const scannerData = !isPath ? (feedData as ScannerFeedData) : null
 
-  const archetypeKey = feedData?.archetypeDisplay ?? null
+  const archetypeKey = feedData?.archetypeKey ?? null
   useArchetypeTheme(archetypeKey)
   const theme = getTheme(archetypeKey)
   const AvatarComponent = getAvatarComponent(archetypeKey)
