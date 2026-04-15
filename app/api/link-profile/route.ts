@@ -17,9 +17,13 @@ export async function POST(request: NextRequest) {
       cookies: {
         getAll() { return cookieStore.getAll() },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Non-fatal — cookies can't be set in some edge cases
+          }
         },
       },
     }
