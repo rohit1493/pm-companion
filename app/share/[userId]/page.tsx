@@ -86,8 +86,6 @@ export default async function SharePage({ params }: { params: Promise<{ userId: 
       padding: '24px',
       fontFamily: "'Inter', sans-serif",
     }}>
-      <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-
       <div style={{
         background: 'rgba(255,255,255,0.05)',
         border: `1px solid ${theme.primary}33`,

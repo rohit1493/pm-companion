@@ -51,6 +51,7 @@ export async function GET() {
 
     return NextResponse.json({
       viewType: 'scanner',
+      archetypeKey: profile?.archetype || 'scanner',
       archetypeDisplay: profile?.archetype_display || 'THE SCANNER',
       archetypeTagline: profile?.archetype_tagline || 'Reading widely. Thinking fast.',
       articles: articles || [],
@@ -90,9 +91,31 @@ export async function GET() {
     .eq('user_id', user.id)
     .order('position', { ascending: true })
 
+  // Auto-heal: if path user has 0 progress rows but sequence is null, build one first
+  let effectiveSequence: string[] | null = null
+  if ((!progressRows || progressRows.length === 0) && profile?.archetype && !profile.sequence) {
+    const archetype = ARCHETYPES[profile.archetype as ArchetypeKey] ?? ARCHETYPES.scanner
+    const { data: freshArticles } = await supabaseAdmin
+      .from('articles')
+      .select('id, category, difficulty')
+      .eq('is_active', true)
+      .limit(100)
+    if (freshArticles && freshArticles.length > 0) {
+      const newSequence = buildSequence(archetype, freshArticles, new Set(), 10)
+      if (newSequence.length > 0) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .update({ sequence: newSequence })
+          .eq('user_id', user.id)
+        effectiveSequence = newSequence
+      }
+    }
+  }
+
   // Auto-heal: if path user has 0 progress rows but has a saved sequence, rebuild progress
-  if ((!progressRows || progressRows.length === 0) && profile?.sequence?.length) {
-    const sequence = profile.sequence as string[]
+  const effectiveSeq = effectiveSequence ?? profile?.sequence
+  if ((!progressRows || progressRows.length === 0) && effectiveSeq?.length) {
+    const sequence = effectiveSeq as string[]
     const toInsert = sequence.map((articleId: string, idx: number) => ({
       user_id: user.id,
       article_id: articleId,
@@ -231,6 +254,7 @@ export async function GET() {
 
   return NextResponse.json({
     viewType: 'path',
+    archetypeKey: profile.archetype || '',
     archetypeDisplay: profile.archetype_display || '',
     archetypeTagline: profile.archetype_tagline || '',
     totalInPath: rows.length,

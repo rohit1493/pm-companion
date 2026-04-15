@@ -5,7 +5,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
-  const next = requestUrl.searchParams.get('next') || '/feed'
+  const rawNext = requestUrl.searchParams.get('next') || '/feed'
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/feed'
 
   if (code) {
     try {
@@ -35,7 +36,8 @@ export async function GET(request: NextRequest) {
       }
     } catch (err) {
       console.error('callback route exception:', err)
-      return NextResponse.redirect(new URL('/auth?error=callback_failed', request.url))
+      const msg = err instanceof Error ? err.message : 'callback_failed'
+      return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(msg)}`, request.url))
     }
   }
 

@@ -11,6 +11,7 @@ import { analytics, identifyUser } from '@/lib/analytics'
 import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
 import { getAvatarComponent } from '@/components/avatars'
 import { getTheme } from '@/lib/archetype-themes'
+import StreakBadge from './StreakBadge'
 
 // --- TYPES ---
 
@@ -46,6 +47,7 @@ type ProgressRow = {
 
 type PathFeedData = {
   viewType: 'path'
+  archetypeKey: string
   archetypeDisplay: string
   archetypeTagline: string
   totalInPath: number
@@ -59,6 +61,7 @@ type PathFeedData = {
 
 type ScannerFeedData = {
   viewType: 'scanner'
+  archetypeKey: string
   archetypeDisplay: string
   archetypeTagline: string
   articles: Article[]
@@ -398,22 +401,22 @@ export default function FeedClient() {
       }
 
       const sessionId = localStorage.getItem('pm_session_id')
-      if (sessionId) {
-        // Await link-profile before loading feed so path is ready on first login
-        try {
-          const linkRes = await fetch('/api/link-profile', {
+      const linkProfilePromise = sessionId
+        ? fetch('/api/link-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session_id: sessionId }),
           })
-          // Only clear session_id on definitive success — keeps it for retry on 401/5xx
-          if (linkRes.ok) {
-            localStorage.removeItem('pm_session_id')
-          }
-        } catch {}
-      }
+            .then((linkRes) => {
+              // Only clear session_id on definitive success — keeps it for retry on 401/5xx
+              if (linkRes.ok) {
+                localStorage.removeItem('pm_session_id')
+              }
+            })
+            .catch(() => {})
+        : Promise.resolve()
 
-      await loadFeed()
+      await Promise.all([linkProfilePromise, loadFeed()])
     })
   }, [loadFeed])
 
@@ -455,6 +458,8 @@ export default function FeedClient() {
     if (newStreak === 1) analytics.streakMilestone(1)
     if (newStreak === 3) analytics.streakMilestone(3)
     if (newStreak === 7) analytics.streakMilestone(7)
+    if (newStreak === 14) analytics.streakMilestone(14)
+    if (newStreak === 30) analytics.streakMilestone(30)
   }
 
   function handleInsightsDone() {
@@ -466,7 +471,7 @@ export default function FeedClient() {
   const pathData = isPath ? (feedData as PathFeedData) : null
   const scannerData = !isPath ? (feedData as ScannerFeedData) : null
 
-  const archetypeKey = feedData?.archetypeDisplay ?? null
+  const archetypeKey = feedData?.archetypeKey ?? null
   useArchetypeTheme(archetypeKey)
   const theme = getTheme(archetypeKey)
   const AvatarComponent = getAvatarComponent(archetypeKey)
@@ -650,6 +655,24 @@ export default function FeedClient() {
         {error && (
           <div style={{ padding: '20px', color: '#EF4444', fontSize: '14px', textAlign: 'center' }} role="alert">
             {error}
+            <div style={{ marginTop: '12px' }}>
+              <button
+                onClick={() => loadFeed()}
+                style={{
+                  padding: '8px 20px',
+                  background: '#ff6b35',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                Try again
+              </button>
+            </div>
           </div>
         )}
 
@@ -685,6 +708,8 @@ export default function FeedClient() {
         {/* FEED PHASE */}
         {phase === 'feed' && feedData && (
           <>
+            <StreakBadge />
+
             {/* Archetype identity header */}
             {feedData.archetypeDisplay && (
               <div style={{ marginBottom: '24px' }}>

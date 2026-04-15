@@ -143,7 +143,7 @@ export default function KeyInsightCard({
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.18)' }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.12)' }}
       >
-        {isLast ? 'Back to your path →' : 'Next insight →'}
+        {isLast ? 'Continue →' : 'Next insight →'}
       </button>
     </div>
   )

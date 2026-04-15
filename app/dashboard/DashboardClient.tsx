@@ -90,6 +90,7 @@ export default function DashboardClient() {
     fetch('/api/dashboard')
       .then((r) => {
         if (r.status === 401) {
+          setLoading(false)
           window.location.href = '/auth'
           return null
         }
@@ -482,7 +483,7 @@ export default function DashboardClient() {
             {/* Stats row */}
             <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
               <StatCard
-                value={`${data.streak}🔥`}
+                value={data.streak === 0 ? '—' : `${data.streak}🔥`}
                 label="Day streak"
                 accent={data.streak > 0}
               />

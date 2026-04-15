@@ -4,10 +4,9 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 const GOAL_LABELS: Record<string, string> = {
-  interviews: 'Prepare for PM interviews',
-  trends: 'Stay updated on PM trends',
-  upskill: 'Upskill in a specific area',
-  all: 'All of the above',
+  interview_prep: 'Prepare for PM interviews',
+  stay_updated: 'Stay updated on PM trends',
+  deep_skill: 'Upskill in a specific area',
 }
 
 export default function DonePage() {
