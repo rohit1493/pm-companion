@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const articleIds = request.nextUrl.searchParams.get('article_ids')?.split(',') || []
+  // L4 fix: filter empty strings so ?article_ids= (empty string) correctly returns 400
+  const articleIds = (request.nextUrl.searchParams.get('article_ids') ?? '').split(',').filter(Boolean)
   if (articleIds.length === 0) {
     return NextResponse.json({ error: 'No article_ids provided' }, { status: 400 })
   }
@@ -65,7 +66,8 @@ export async function GET(request: NextRequest) {
   )
 
   for (const article of articles) {
-    if (article.quiz_q1 && article.quiz_a1) {
+    // H8 fix: guard both q1 and q2 so total never exceeds 4
+    if (article.quiz_q1 && article.quiz_a1 && questions.length < 4) {
       questions.push({
         id: `${article.id}-q1`,
         article_id: article.id,

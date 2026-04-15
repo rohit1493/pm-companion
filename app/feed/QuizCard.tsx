@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 
 type Question = {
   id: string
@@ -38,8 +38,10 @@ export default function QuizCard({
   const [articles, setArticles] = useState<QuizArticle[]>([])
   const [quizState, setQuizState] = useState<QuizState>({ phase: 'intro' })
   const [correctCount, setCorrectCount] = useState(0)
+  const correctCountRef = React.useRef(0)
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
+  const [saveError, setSaveError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -59,6 +61,14 @@ export default function QuizCard({
       })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articleIds.join(',')])
+
+  // L1 fix: moved before any conditional returns to comply with Rules of Hooks
+  useEffect(() => {
+    if (!loading && questions.length === 0) {
+      finishQuiz(0)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, questions.length])
 
   async function finishQuiz(finalCorrect: number) {
     setSubmitting(true)
@@ -84,7 +94,7 @@ export default function QuizCard({
       })
     } catch {
       setSubmitting(false)
-      setFetchError(true)
+      setSaveError(true)
       return
     }
   }
@@ -96,8 +106,12 @@ export default function QuizCard({
     const isCorrect = selected === q.correct_answer
 
     if (isCorrect) {
-      const newCorrect = correctCount + 1
-      setCorrectCount(newCorrect)
+      // H7 fix: only increment score on first attempt, not on retake
+      const newCorrect = !retake ? correctCount + 1 : correctCount
+      if (!retake) {
+        setCorrectCount(newCorrect)
+        correctCountRef.current = newCorrect
+      }
       setQuizState({ phase: 'answer_correct', index, newCorrect })
     } else if (!retake) {
       // First wrong — offer retake
@@ -165,13 +179,6 @@ export default function QuizCard({
       </div>
     )
   }
-
-  useEffect(() => {
-    if (!loading && questions.length === 0) {
-      finishQuiz(0)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, questions.length])
 
   if (!loading && questions.length === 0) {
     return null
@@ -312,7 +319,8 @@ export default function QuizCard({
                   <p style={{ fontSize: '13px', color: '#8b96a5', fontFamily: "'Inter', sans-serif", marginBottom: '12px' }}>
                     The correct answer is highlighted above.
                   </p>
-                  <button onClick={() => next(idx, correctCount)} style={primaryBtn}>
+                  {/* L2 fix: use ref to avoid stale correctCount closure */}
+                  <button onClick={() => next(idx, correctCountRef.current)} style={primaryBtn}>
                     Continue →
                   </button>
                 </div>
@@ -349,14 +357,32 @@ export default function QuizCard({
             <h2 style={headingStyle}>{cc}/{tc} correct</h2>
             <p style={{ ...bodyStyle, marginBottom: '28px' }}>{copy}</p>
 
-            {isLow && onReRead ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* H9 fix: show save-specific error with retry instead of polluting fetchError */}
+            {saveError && (
+              <div style={{ marginBottom: '16px' }}>
+                <p style={{ fontSize: '13px', color: '#DC2626', fontFamily: "'Inter', sans-serif", marginBottom: '8px' }}>
+                  Couldn&apos;t save your results. Check your connection.
+                </p>
                 <button
-                  onClick={onReRead}
-                  style={{ ...primaryBtn, background: '#f6fafe', color: '#0b0f14' }}
+                  onClick={() => { setSaveError(false); finishQuiz(cc) }}
+                  style={{ ...primaryBtn, fontSize: '13px', padding: '10px 20px', background: '#EF4444' }}
                 >
-                  Re-read the articles →
+                  Retry →
                 </button>
+              </div>
+            )}
+
+            {/* M6 fix: show isLow layout whenever score is low; re-read button renders only if onReRead is provided */}
+            {isLow ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {onReRead && (
+                  <button
+                    onClick={onReRead}
+                    style={{ ...primaryBtn, background: '#f6fafe', color: '#0b0f14' }}
+                  >
+                    Re-read the articles →
+                  </button>
+                )}
                 <button
                   onClick={() => finishQuiz(cc)}
                   disabled={submitting}
