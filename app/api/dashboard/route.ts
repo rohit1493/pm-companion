@@ -108,14 +108,22 @@ export async function GET() {
   }
 
   // Last 7 days (from daily_articles for streaks or from user_progress completed dates)
+  // Use local date strings (YYYY-MM-DD) so day boundaries match the user's clock,
+  // not UTC midnight (which can be off by a full day for users west of UTC).
+  function toLocalDateString(date: Date): string {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const dd = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${dd}`
+  }
   const last7: { date: string; read: boolean }[] = []
   const completedDates = new Set(
     completedProgress
       .filter((r) => r.completed_at)
-      .map((r) => r.completed_at!.split('T')[0])
+      .map((r) => toLocalDateString(new Date(r.completed_at!)))
   )
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
+    const d = toLocalDateString(new Date(Date.now() - i * 86400000))
     const fromDailyArticles = (allDays || []).find((a) => a.assigned_date === d)
     const fromProgress = completedDates.has(d)
     last7.push({ date: d, read: (fromDailyArticles?.read || false) || fromProgress })
