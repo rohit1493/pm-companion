@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
     archetype,
     archetype_display,
     archetype_tagline,
+    avatar,
     // Legacy fields
     primary_goal,
     topics,
@@ -77,6 +78,7 @@ export async function POST(request: NextRequest) {
     ...(archetype && { archetype }),
     ...(archetype_display && { archetype_display }),
     ...(archetype_tagline && { archetype_tagline }),
+    ...(avatar && { avatar }),
     ...(sequence.length > 0 && { sequence }),
     // Legacy compatibility
     ...(primary_goal && !goal && { primary_goal }),

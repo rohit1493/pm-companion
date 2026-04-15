@@ -32,7 +32,7 @@ export async function GET() {
   // Get user profile — use limit(1) to handle edge case of multiple linked rows
   const { data: profiles } = await supabaseAdmin
     .from('user_profiles')
-    .select('archetype, archetype_display, archetype_tagline, sequence')
+    .select('archetype, archetype_display, archetype_tagline, sequence, avatar')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -54,6 +54,7 @@ export async function GET() {
       archetypeKey: profile?.archetype || 'scanner',
       archetypeDisplay: profile?.archetype_display || 'THE SCANNER',
       archetypeTagline: profile?.archetype_tagline || 'Reading widely. Thinking fast.',
+      avatar: profile?.avatar ?? 'sensei',
       articles: articles || [],
     })
   }
@@ -257,6 +258,7 @@ export async function GET() {
     archetypeKey: profile.archetype || '',
     archetypeDisplay: profile.archetype_display || '',
     archetypeTagline: profile.archetype_tagline || '',
+    avatar: profile.avatar ?? 'sensei',
     totalInPath: rows.length,
     completedCount: completedRows.length,
     current,
