@@ -71,7 +71,7 @@ export async function GET() {
     .eq('user_id', user.id)
     .order('assigned_date', { ascending: false })
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD in local time
   const readDays = (allDays || []).filter((d) => d.read)
   const totalRead = completedCount > 0 ? completedCount : readDays.length
   const totalAssigned = totalInPath > 0 ? totalInPath : (allDays || []).length
@@ -87,7 +87,7 @@ export async function GET() {
     const lastUpdated = profile.streak_last_updated ? new Date(profile.streak_last_updated) : null
     const streakActive = lastUpdated && lastUpdated > fortyEightHoursAgo
     streak = streakActive ? (profile.streak || 0) : 0
-    readToday = !!lastUpdated && lastUpdated.toISOString().split('T')[0] === today
+    readToday = !!lastUpdated && lastUpdated.toLocaleDateString('en-CA') === today
   } else {
     // Legacy users: calculate from daily_articles
     let checkDate = readToday

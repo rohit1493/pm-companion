@@ -46,12 +46,12 @@ export default function AuthPage() {
   async function linkPendingProfile() {
     const sessionId = localStorage.getItem('pm_session_id')
     if (!sessionId) return
-    await fetch('/api/link-profile', {
+    const res = await fetch('/api/link-profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ session_id: sessionId }),
     })
-    localStorage.removeItem('pm_session_id')
+    if (res.ok) localStorage.removeItem('pm_session_id')
   }
 
   async function handleSubmit(e: React.FormEvent) {

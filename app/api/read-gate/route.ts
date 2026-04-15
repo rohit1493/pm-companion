@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (insertError || !newRow) {
-      return NextResponse.json({ error: 'Article not in your path' }, { status: 404 })
+      return NextResponse.json({ error: 'Failed to record reading progress' }, { status: 500 })
     }
 
     return NextResponse.json({

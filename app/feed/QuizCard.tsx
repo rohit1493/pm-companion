@@ -64,11 +64,11 @@ export default function QuizCard({
 
   // L1 fix: moved before any conditional returns to comply with Rules of Hooks
   useEffect(() => {
-    if (!loading && questions.length === 0) {
+    if (!loading && !fetchError && questions.length === 0) {
       finishQuiz(0)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, questions.length])
+  }, [loading, fetchError, questions.length])
 
   async function finishQuiz(finalCorrect: number) {
     setSubmitting(true)

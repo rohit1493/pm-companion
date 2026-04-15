@@ -501,10 +501,13 @@ export default function OnboardingFlow() {
 
   function handleBack() {
     if (step === 3 && goal === 'deep_skill') {
-      setExperience('') // reset experience when going back from step 3 (deep_skill)
+      setExperience('') // deep_skill: step 3 is experience; reset on back
+    }
+    if (step === 3 && goal !== 'deep_skill') {
+      setTarget('') // interview_prep: step 3 is target; reset on back
     }
     if (step === 4) {
-      setTarget('') // reset target when going back from step 4
+      setWeakAreas([]) // interview_prep: step 4 is weakAreas; reset on back
     }
     setStep((s) => s - 1)
   }
