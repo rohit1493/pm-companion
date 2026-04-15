@@ -26,6 +26,11 @@
   --archetype-tertiary: #cc4400;
   --archetype-glow: rgba(255, 107, 53, 0.3);
   --archetype-bg: linear-gradient(135deg, #0b0f14 0%, #1a1208 100%);
+  /* Avatar theme variables — overridden by useAvatarTheme hook (defaults to Sensei) */
+  --avatar-accent: #a78bfa;
+  --avatar-accent-dim: #7c3aed;
+  --avatar-accent-glow: rgba(167, 139, 250, 0.3);
+  --avatar-accent-mid: #c4b5fd;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -8,6 +8,9 @@ import { createClient } from '@/lib/supabase-browser'
 import { analytics } from '@/lib/analytics'
 import { getAvatarComponent } from '@/components/avatars'
 import { getTheme } from '@/lib/archetype-themes'
+import AvatarPicker from '@/components/AvatarPicker'
+import AvatarBurst from '@/components/AvatarBurst'
+import { getAvatarTheme, type AvatarKey } from '@/lib/avatar-themes'
 
 // --- HELPERS ---
 
@@ -473,6 +476,12 @@ export default function OnboardingFlow() {
 
   useEffect(() => { analytics.onboardingStarted() }, [])
 
+  // Avatar
+  const [avatarKey, setAvatarKey] = useState<AvatarKey | null>(null)
+  const [showBurst, setShowBurst] = useState(false)
+  const [burstOrigin, setBurstOrigin] = useState({ x: 0, y: 0 })
+  const [avatarDone, setAvatarDone] = useState(false)
+
   // Answers
   const [goal, setGoal] = useState<Goal>('')
   const [target, setTarget] = useState<Target>('')
@@ -548,6 +557,7 @@ export default function OnboardingFlow() {
           archetype: archetype.key,
           archetype_display: archetype.display,
           archetype_tagline: archetype.tagline,
+          avatar: avatarKey ?? 'sensei',
         }),
       })
 
@@ -602,6 +612,32 @@ export default function OnboardingFlow() {
 
   if (showLoader) {
     return <LoadingScreen onComplete={handleLoaderComplete} />
+  }
+
+  // Avatar step — shown first if avatar not yet chosen
+  if (!avatarDone) {
+    return (
+      <>
+        <AvatarPicker
+          onSelect={(key, x, y) => {
+            setAvatarKey(key)
+            setBurstOrigin({ x, y })
+            setShowBurst(true)
+          }}
+        />
+        {showBurst && avatarKey && (
+          <AvatarBurst
+            fighter={getAvatarTheme(avatarKey)}
+            originX={burstOrigin.x}
+            originY={burstOrigin.y}
+            onComplete={() => {
+              setShowBurst(false)
+              setAvatarDone(true)
+            }}
+          />
+        )}
+      </>
+    )
   }
 
   return (

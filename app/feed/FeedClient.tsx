@@ -8,9 +8,12 @@ import QuizCard from './QuizCard'
 import KeyInsightCard from './KeyInsightCard'
 import UnlockAnimation from './UnlockAnimation'
 import { analytics, identifyUser } from '@/lib/analytics'
-import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
+import { useAvatarTheme } from '@/hooks/useAvatarTheme'
 import { getAvatarComponent } from '@/components/avatars'
 import { getTheme } from '@/lib/archetype-themes'
+import { getAvatarTheme, type AvatarKey } from '@/lib/avatar-themes'
+import AvatarPicker from '@/components/AvatarPicker'
+import AvatarBurst from '@/components/AvatarBurst'
 import StreakBadge from './StreakBadge'
 
 // --- TYPES ---
@@ -50,6 +53,7 @@ type PathFeedData = {
   archetypeKey: string
   archetypeDisplay: string
   archetypeTagline: string
+  avatar: string
   totalInPath: number
   completedCount: number
   current: ProgressRow | null
@@ -64,6 +68,7 @@ type ScannerFeedData = {
   archetypeKey: string
   archetypeDisplay: string
   archetypeTagline: string
+  avatar: string
   articles: Article[]
 }
 
@@ -357,6 +362,9 @@ export default function FeedClient() {
   const [userEmail, setUserEmail] = useState('')
   const [error, setError] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showChangeFighter, setShowChangeFighter] = useState(false)
+  const [burstFighter, setBurstFighter] = useState<string | null>(null)
+  const [burstOrigin, setBurstOrigin] = useState({ x: 0, y: 0 })
   const identifiedRef = useRef(false)
   const pathCompleteTrackedRef = useRef(false)
 
@@ -472,12 +480,14 @@ export default function FeedClient() {
   const scannerData = !isPath ? (feedData as ScannerFeedData) : null
 
   const archetypeKey = feedData?.archetypeKey ?? null
-  useArchetypeTheme(archetypeKey)
+  const avatarKey = feedData?.avatar ?? null
+  useAvatarTheme(avatarKey)
   const theme = getTheme(archetypeKey)
+  const avatarTheme = getAvatarTheme(avatarKey)
   const AvatarComponent = getAvatarComponent(archetypeKey)
 
   return (
-    <div style={{ minHeight: '100vh', background: theme.bgGradient, transition: 'background 1.2s ease-in-out', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: `linear-gradient(135deg, #0b0f14 0%, ${avatarTheme.accent}18 100%)`, transition: 'background 1.2s ease-in-out', fontFamily: "'Inter', sans-serif" }}>
       <div className="grain-overlay" />
       {/* Header */}
       <header style={{
@@ -542,6 +552,37 @@ export default function FeedClient() {
               <span className="nav-pulse-dot" />
             </Link>
           </div>
+
+          {/* Right — Avatar chip */}
+          {avatarTheme && (
+            <button
+              onClick={() => { setShowChangeFighter(true); setMenuOpen(false) }}
+              style={{
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: `${avatarTheme.accent}14`,
+                border: `1px solid ${avatarTheme.accent}40`,
+                borderRadius: '999px',
+                padding: '4px 10px 4px 6px',
+                cursor: 'pointer',
+                outline: 'none',
+                zIndex: 1,
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: '16px', lineHeight: 1 }}>{avatarTheme.emoji}</span>
+              <span style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '12px',
+                fontWeight: 600,
+                color: avatarTheme.accent,
+              }}>
+                {avatarTheme.label}
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Hamburger dropdown */}
@@ -568,6 +609,32 @@ export default function FeedClient() {
                   <p style={{ fontSize: '11px', color: '#6b7685', fontFamily: "'Inter', sans-serif", marginBottom: '3px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Signed in as</p>
                   <p style={{ fontSize: '13px', color: '#f6fafe', fontFamily: "'Inter', sans-serif", fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userEmail}</p>
                 </div>
+              )}
+              {avatarTheme && (
+                <button
+                  onClick={() => { setShowChangeFighter(true); setMenuOpen(false) }}
+                  style={{
+                    width: '100%',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '10px 12px',
+                    fontSize: '13px',
+                    color: avatarTheme.accent,
+                    cursor: 'pointer',
+                    fontFamily: "'Inter', sans-serif",
+                    textAlign: 'left',
+                    transition: 'background 150ms ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#1a2332' }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'none' }}
+                >
+                  <span>{avatarTheme.emoji}</span>
+                  Change Fighter
+                </button>
               )}
               <button
                 onClick={async () => {
@@ -726,7 +793,7 @@ export default function FeedClient() {
                       width: '40px',
                       height: '40px',
                       borderRadius: '50%',
-                      background: `radial-gradient(circle, ${theme.glow} 0%, transparent 70%)`,
+                      background: `radial-gradient(circle, ${avatarTheme.accent}4d 0%, transparent 70%)`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -762,9 +829,9 @@ export default function FeedClient() {
 
                 {pathData.quizReady && (
                   <div style={{
-                    border: `1px solid ${theme.primary}`,
-                    boxShadow: `0 0 16px ${theme.glow}`,
-                    background: `${theme.primary}18`,
+                    border: `1px solid ${avatarTheme.accent}`,
+                    boxShadow: `0 0 16px ${avatarTheme.accent}4d`,
+                    background: `${avatarTheme.accent}18`,
                     borderRadius: '14px',
                     padding: '16px 20px',
                     marginBottom: '16px',
@@ -941,6 +1008,73 @@ export default function FeedClient() {
           </>
         )}
       </main>
+
+      {/* Change Fighter overlay */}
+      {showChangeFighter && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(11,15,20,0.95)',
+          zIndex: 9000,
+          overflowY: 'auto',
+        }}>
+          {/* Close button */}
+          <button
+            onClick={() => setShowChangeFighter(false)}
+            style={{
+              position: 'fixed',
+              top: '16px',
+              right: '16px',
+              background: '#1e2a38',
+              border: '1px solid #2a3340',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 9001,
+              color: '#8b96a5',
+              fontSize: '18px',
+              outline: 'none',
+            }}
+          >
+            ×
+          </button>
+          <AvatarPicker
+            currentAvatar={feedData?.avatar as AvatarKey | undefined}
+            onSelect={async (key, x, y) => {
+              setShowChangeFighter(false)
+              setBurstFighter(key)
+              setBurstOrigin({ x, y })
+              // Patch DB
+              const supabaseClient = createClient()
+              const { data: { user } } = await supabaseClient.auth.getUser()
+              if (user) {
+                await supabaseClient
+                  .from('user_profiles')
+                  .update({ avatar: key })
+                  .eq('user_id', user.id)
+              }
+              // Update feedData in state so chip updates immediately
+              if (feedData) {
+                setFeedData({ ...feedData, avatar: key })
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {/* Avatar burst animation */}
+      {burstFighter && (
+        <AvatarBurst
+          fighter={getAvatarTheme(burstFighter)}
+          originX={burstOrigin.x}
+          originY={burstOrigin.y}
+          onComplete={() => setBurstFighter(null)}
+        />
+      )}
     </div>
   )
 }
