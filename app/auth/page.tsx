@@ -43,6 +43,17 @@ export default function AuthPage() {
     }
   }
 
+  async function linkPendingProfile() {
+    const sessionId = localStorage.getItem('pm_session_id')
+    if (!sessionId) return
+    await fetch('/api/link-profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId }),
+    })
+    localStorage.removeItem('pm_session_id')
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || !password) return
@@ -84,6 +95,7 @@ export default function AuthPage() {
           setErrorMsg(signInError.message)
         } else {
           analytics.signedUp()
+          await linkPendingProfile()
           router.push('/feed')
         }
       }
@@ -97,12 +109,13 @@ export default function AuthPage() {
         setErrorMsg(error.message)
       } else {
         analytics.signedIn()
+        await linkPendingProfile()
         router.push('/feed')
       }
     }
   }
 
-  const canSubmit = email.trim() && (mode === 'reset' || password) && state !== 'loading'
+  const canSubmit = email.trim() && (mode === 'reset' || (mode === 'signup' ? password.length >= 6 : password)) && state !== 'loading'
 
   const inputStyle: React.CSSProperties = {
     width: '100%',

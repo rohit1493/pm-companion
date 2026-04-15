@@ -28,8 +28,11 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   const { session_id } = await request.json()
-  if (!session_id) return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })
+  if (!session_id || !UUID_REGEX.test(session_id)) {
+    return NextResponse.json({ error: 'Invalid session_id' }, { status: 400 })
+  }
 
   // Check if user already has a linked profile
   const { data: existing } = await supabaseAdmin
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
     const betterArchetype = sessionProfile?.archetype && sessionProfile.archetype !== 'scanner'
     const currentIsBad = !existing.archetype || existing.archetype === 'scanner'
 
-    if (betterArchetype && (currentIsBad || sessionProfile!.archetype !== existing.archetype)) {
+    if (betterArchetype && currentIsBad) {
       // Update linked profile with correct archetype + rebuild sequence
       await supabaseAdmin
         .from('user_profiles')
