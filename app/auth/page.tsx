@@ -56,7 +56,8 @@ export default function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!email.trim() || !password) return
+    if (!email.trim()) return
+    if (mode !== 'reset' && !password) return
     setState('loading')
     setErrorMsg('')
 

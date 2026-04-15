@@ -552,8 +552,12 @@ export default function OnboardingFlow() {
       })
 
       if (!res.ok) {
-        const d = await res.json()
-        throw new Error(d.error || 'Failed to save profile')
+        let errMsg = 'Failed to save profile'
+        try {
+          const d = await res.json()
+          errMsg = d.error || errMsg
+        } catch {}
+        throw new Error(errMsg)
       }
 
       // Store archetype locally
