@@ -91,6 +91,7 @@ export async function GET() {
     .order('position', { ascending: true })
 
   // Auto-heal: if path user has 0 progress rows but sequence is null, build one first
+  let effectiveSequence: string[] | null = null
   if ((!progressRows || progressRows.length === 0) && profile?.archetype && !profile.sequence) {
     const archetype = ARCHETYPES[profile.archetype as ArchetypeKey] ?? ARCHETYPES.scanner
     const { data: freshArticles } = await supabaseAdmin
@@ -105,14 +106,15 @@ export async function GET() {
           .from('user_profiles')
           .update({ sequence: newSequence })
           .eq('user_id', user.id)
-        profile.sequence = newSequence
+        effectiveSequence = newSequence
       }
     }
   }
 
   // Auto-heal: if path user has 0 progress rows but has a saved sequence, rebuild progress
-  if ((!progressRows || progressRows.length === 0) && profile?.sequence?.length) {
-    const sequence = profile.sequence as string[]
+  const effectiveSeq = effectiveSequence ?? profile?.sequence
+  if ((!progressRows || progressRows.length === 0) && effectiveSeq?.length) {
+    const sequence = effectiveSeq as string[]
     const toInsert = sequence.map((articleId: string, idx: number) => ({
       user_id: user.id,
       article_id: articleId,
