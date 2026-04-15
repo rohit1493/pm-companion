@@ -43,10 +43,32 @@ export async function POST(request: NextRequest) {
     .select('id, time_on_article_seconds, read_gate_passed')
     .eq('user_id', user.id)
     .eq('article_id', article_id)
-    .single()
+    .maybeSingle()
 
   if (!row) {
-    return NextResponse.json({ error: 'Article not in your path' }, { status: 404 })
+    // No progress row yet — upsert one so time tracking can begin
+    const { data: newRow, error: insertError } = await supabaseAdmin
+      .from('user_progress')
+      .upsert({
+        user_id: user.id,
+        article_id,
+        time_on_article_seconds: safeSecs,
+        read_gate_passed: safeSecs >= READ_GATE_SECONDS,
+        completed: false,
+        position: 0,
+      }, { onConflict: 'user_id,article_id' })
+      .select('id, time_on_article_seconds, read_gate_passed')
+      .maybeSingle()
+
+    if (insertError || !newRow) {
+      return NextResponse.json({ error: 'Article not in your path' }, { status: 404 })
+    }
+
+    return NextResponse.json({
+      passed: newRow.read_gate_passed,
+      total_seconds: newRow.time_on_article_seconds,
+      quiz_ready: false,
+    })
   }
 
   const newTotal = (row.time_on_article_seconds || 0) + safeSecs

@@ -90,6 +90,26 @@ export async function GET() {
     .eq('user_id', user.id)
     .order('position', { ascending: true })
 
+  // Auto-heal: if path user has 0 progress rows but sequence is null, build one first
+  if ((!progressRows || progressRows.length === 0) && profile?.archetype && !profile.sequence) {
+    const archetype = ARCHETYPES[profile.archetype as ArchetypeKey] ?? ARCHETYPES.scanner
+    const { data: freshArticles } = await supabaseAdmin
+      .from('articles')
+      .select('id, category, difficulty')
+      .eq('is_active', true)
+      .limit(100)
+    if (freshArticles && freshArticles.length > 0) {
+      const newSequence = buildSequence(archetype, freshArticles, new Set(), 10)
+      if (newSequence.length > 0) {
+        await supabaseAdmin
+          .from('user_profiles')
+          .update({ sequence: newSequence })
+          .eq('user_id', user.id)
+        profile.sequence = newSequence
+      }
+    }
+  }
+
   // Auto-heal: if path user has 0 progress rows but has a saved sequence, rebuild progress
   if ((!progressRows || progressRows.length === 0) && profile?.sequence?.length) {
     const sequence = profile.sequence as string[]
