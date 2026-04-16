@@ -52,10 +52,10 @@ export async function GET() {
   const totalInPath = allProgress.length
   const completedCount = completedProgress.length
 
-  // Quiz sessions for PM Dojo score
+  // Quiz sessions for PM Edge Score (3 dimensions per spec §7)
   const { data: quizSessions } = await supabaseAdmin
     .from('quiz_sessions')
-    .select('correct_answers, total_questions, completed_at')
+    .select('articles_covered, correct_answers, total_questions, completed_at')
     .eq('user_id', user.id)
     .order('completed_at', { ascending: true })
 
@@ -63,6 +63,74 @@ export async function GET() {
   const totalQuestions = sessions.reduce((sum, s) => sum + (s.total_questions || 0), 0)
   const totalCorrect = sessions.reduce((sum, s) => sum + (s.correct_answers || 0), 0)
   const dojoScore = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : null
+
+  // PM Edge Score: compute 3 dimensions per spec (productStrategy, execution, dataThinking)
+  type Dimension = 'productStrategy' | 'execution' | 'dataThinking'
+  const CATEGORY_TO_DIMENSION: Record<string, Dimension> = {
+    'Product Strategy': 'productStrategy',
+    'Case Studies & Teardowns': 'productStrategy',
+    'Startups': 'productStrategy',
+    'Analytics': 'dataThinking',
+    'AI': 'dataThinking',
+    'GTM': 'execution',
+    'Growth': 'execution',
+    'B2B/SaaS': 'execution',
+    'PM Career': 'execution',
+    'Design & UX': 'execution',
+  }
+
+  // Spec §7.3: update rule per quiz — 0/2 → 35, 1/2 → 62, 2/2 → 88
+  function bucketScore(correct: number, total: number): number {
+    if (total === 0) return 35
+    const frac = correct / total
+    if (frac >= 0.99) return 88
+    if (frac >= 0.5) return 62
+    return 35
+  }
+
+  // Collect article categories by ID so we can map each session's coverage to dimensions
+  const allCoveredIds = Array.from(new Set(sessions.flatMap((s) => (s.articles_covered as string[]) || [])))
+  const articleCategoryById: Record<string, string | null> = {}
+  if (allCoveredIds.length > 0) {
+    const { data: cats } = await supabaseAdmin
+      .from('articles')
+      .select('id, category')
+      .in('id', allCoveredIds)
+    for (const row of cats || []) {
+      articleCategoryById[row.id as string] = (row.category as string | null) ?? null
+    }
+  }
+
+  // Spec §7.2 seeding: unseeded dimensions start at 55 (we don't currently track "declared weak area")
+  const pmEdgeScore: Record<Dimension, number> = {
+    productStrategy: 55,
+    execution: 55,
+    dataThinking: 55,
+  }
+  const dimensionSeen: Record<Dimension, boolean> = {
+    productStrategy: false,
+    execution: false,
+    dataThinking: false,
+  }
+
+  // Best-of per dimension across sessions (spec §7.3: scores only go up)
+  for (const session of sessions) {
+    const articleIds = (session.articles_covered as string[]) || []
+    const sessionScore = bucketScore(session.correct_answers || 0, session.total_questions || 0)
+    const dimensionsInSession = new Set<Dimension>()
+    for (const aid of articleIds) {
+      const cat = articleCategoryById[aid]
+      if (!cat) continue
+      const dim = CATEGORY_TO_DIMENSION[cat]
+      if (dim) dimensionsInSession.add(dim)
+    }
+    for (const dim of dimensionsInSession) {
+      if (!dimensionSeen[dim] || sessionScore > pmEdgeScore[dim]) {
+        pmEdgeScore[dim] = sessionScore
+        dimensionSeen[dim] = true
+      }
+    }
+  }
 
   // For non-PM-Dojo users, fall back to legacy daily_articles
   const { data: allDays } = await supabaseAdmin
@@ -202,6 +270,7 @@ export async function GET() {
     totalInPath,
     completedCount,
     dojoScore,
+    pmEdgeScore,
     quizSessions: sessions.length,
   })
 }

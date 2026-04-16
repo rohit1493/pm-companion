@@ -40,6 +40,11 @@ type DashboardData = {
   totalInPath: number
   completedCount: number
   dojoScore: number | null
+  pmEdgeScore: {
+    productStrategy: number
+    execution: number
+    dataThinking: number
+  }
   quizSessions: number
 }
 
@@ -436,46 +441,41 @@ export default function DashboardClient() {
               </div>
             )}
 
-            {/* PM Dojo score (shown after completing path or after 7 days) */}
-            {data.dojoScore !== null && data.quizSessions >= 1 && (
+            {/* PM Edge Score — 3 dimensions (productStrategy, execution, dataThinking) per spec §7 */}
+            {data.pmEdgeScore && data.quizSessions >= 1 && (
               <div style={{
                 background: '#121821',
                 border: '1px solid #2a3340',
                 borderRadius: '14px',
                 padding: '20px',
                 marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '16px',
               }}>
-                <div style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: data.dojoScore >= 75 ? 'var(--archetype-secondary)' : '#161e28',
-                  border: '3px solid',
-                  borderColor: data.dojoScore >= 75 ? 'var(--archetype-secondary)' : '#2a3340',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <span style={{
-                    fontFamily: "'Manrope', sans-serif",
-                    fontSize: '20px',
-                    fontWeight: 400,
-                    color: data.dojoScore >= 75 ? 'white' : '#f6fafe',
-                  }}>
-                    {data.dojoScore}
-                  </span>
-                </div>
-                <div>
-                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '14px', fontWeight: 600, color: '#f6fafe', marginBottom: '3px' }}>
-                    PM Dojo Score
-                  </p>
-                  <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: '#8b96a5' }}>
-                    {data.dojoScore >= 75 ? 'Sharp recall. You\'re in the top tier.' : 'Quiz more accurately to push your Dojo Score above 75.'}
-                  </p>
+                <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6b7685', marginBottom: '16px' }}>
+                  PM Edge Score
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {([
+                    { key: 'productStrategy', label: 'Product Strategy', value: data.pmEdgeScore.productStrategy },
+                    { key: 'execution', label: 'Execution', value: data.pmEdgeScore.execution },
+                    { key: 'dataThinking', label: 'Data Thinking', value: data.pmEdgeScore.dataThinking },
+                  ] as const).map((dim) => (
+                    <div key={dim.key}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 500, color: '#f6fafe' }}>{dim.label}</span>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: dim.value >= 75 ? 'var(--archetype-primary)' : '#8b96a5' }}>{dim.value}</span>
+                      </div>
+                      <div style={{ height: '6px', background: '#1e2a38', borderRadius: '99px', overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${dim.value}%`,
+                          background: dim.value >= 75 ? 'var(--archetype-primary)' : '#6b7685',
+                          borderRadius: '99px',
+                          transition: 'width 600ms ease',
+                          minWidth: dim.value > 0 ? '6px' : '0',
+                        }} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
