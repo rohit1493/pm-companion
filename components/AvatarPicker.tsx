@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { AVATAR_THEMES, type AvatarKey } from '@/lib/avatar-themes'
 
 interface AvatarPickerProps {
@@ -10,15 +10,20 @@ interface AvatarPickerProps {
 
 export default function AvatarPicker({ currentAvatar, onSelect }: AvatarPickerProps) {
   const cardRefs = useRef<Map<AvatarKey, HTMLButtonElement>>(new Map())
+  const [clickingKey, setClickingKey] = useState<AvatarKey | null>(null)
 
   function handlePick(key: AvatarKey) {
-    const el = cardRefs.current.get(key)
-    if (el) {
-      const rect = el.getBoundingClientRect()
-      onSelect(key, rect.left + rect.width / 2, rect.top + rect.height / 2)
-    } else {
-      onSelect(key, window.innerWidth / 2, window.innerHeight / 2)
-    }
+    setClickingKey(key)
+    setTimeout(() => {
+      setClickingKey(null)
+      const el = cardRefs.current.get(key)
+      if (el) {
+        const rect = el.getBoundingClientRect()
+        onSelect(key, rect.left + rect.width / 2, rect.top + rect.height / 2)
+      } else {
+        onSelect(key, window.innerWidth / 2, window.innerHeight / 2)
+      }
+    }, 150)
   }
 
   const fighters = Object.values(AVATAR_THEMES)
@@ -64,13 +69,24 @@ export default function AvatarPicker({ currentAvatar, onSelect }: AvatarPickerPr
           Your fighter sets the tone for your entire experience.
         </p>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '12px',
-        }}>
+        <style>{`
+          @media (max-width: 480px) {
+            .avatar-picker-grid {
+              grid-template-columns: 1fr !important;
+            }
+          }
+        `}</style>
+        <div
+          className="avatar-picker-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '12px',
+          }}
+        >
           {fighters.map((fighter) => {
             const isSelected = currentAvatar === fighter.key
+            const isClicking = clickingKey === fighter.key
             return (
               <button
                 key={fighter.key}
@@ -79,6 +95,8 @@ export default function AvatarPicker({ currentAvatar, onSelect }: AvatarPickerPr
                 }}
                 type="button"
                 onClick={() => handlePick(fighter.key)}
+                aria-label={`Select ${fighter.label} fighter`}
+                aria-pressed={isSelected}
                 style={{
                   background: isSelected ? `${fighter.accent}14` : '#121821',
                   border: `1.5px solid ${isSelected ? fighter.accent : '#2a3340'}`,
@@ -91,17 +109,23 @@ export default function AvatarPicker({ currentAvatar, onSelect }: AvatarPickerPr
                   boxShadow: isSelected ? `0 0 20px ${fighter.accent}40` : 'none',
                   position: 'relative',
                   overflow: 'hidden',
+                  transform: isClicking ? 'scale(0.97)' : 'none',
                 }}
                 onMouseEnter={(e) => {
                   if (!isSelected) {
-                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = fighter.accent + '60'
-                    ;(e.currentTarget as HTMLButtonElement).style.background = `${fighter.accent}08`
+                    const el = e.currentTarget as HTMLButtonElement
+                    el.style.borderColor = '#ff6b35'
+                    el.style.transform = 'translateY(-2px)'
+                    el.style.boxShadow = '0 4px 16px rgba(255,107,53,0.15)'
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isSelected) {
-                    ;(e.currentTarget as HTMLButtonElement).style.borderColor = '#2a3340'
-                    ;(e.currentTarget as HTMLButtonElement).style.background = '#121821'
+                    const el = e.currentTarget as HTMLButtonElement
+                    el.style.borderColor = '#2a3340'
+                    el.style.background = '#121821'
+                    el.style.transform = 'none'
+                    el.style.boxShadow = 'none'
                   }
                 }}
               >

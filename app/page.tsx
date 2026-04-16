@@ -84,6 +84,7 @@ export default function Home() {
         }}>
           <Link
             href="/onboarding"
+            className="cta-primary"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -105,6 +106,7 @@ export default function Home() {
           </Link>
           <Link
             href="/auth"
+            className="cta-secondary"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -136,9 +138,9 @@ export default function Home() {
           margin: '64px auto 0',
         }}>
           {[
-            { k: '01', t: 'Sequenced', d: 'Paths ordered by skill, not recency' },
-            { k: '02', t: 'Gated', d: '30-second read gate before the next unlock' },
-            { k: '03', t: 'Streaked', d: 'Daily reps you can actually feel' },
+            { k: '01', t: 'Sequenced', emoji: '🗺️', d: 'Paths ordered by skill, not recency' },
+            { k: '02', t: 'Gated', emoji: '⏱️', d: '30-second read gate before the next unlock' },
+            { k: '03', t: 'Streaked', emoji: '🔥', d: 'Daily reps you can actually feel' },
           ].map((item) => (
             <div key={item.k} style={{
               background: 'rgba(18,24,33,0.7)',
@@ -153,7 +155,11 @@ export default function Home() {
                 letterSpacing: '0.18em',
                 color: '#ff6b35',
                 marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
               }}>
+                <span style={{ fontSize: '16px', lineHeight: 1 }}>{item.emoji}</span>
                 {item.k}
               </div>
               <div style={{
@@ -186,6 +192,16 @@ export default function Home() {
         .ember { position: absolute; border-radius: 50%; animation: emberFloat 3s ease-in-out infinite; pointer-events: none; }
         .feature-grid { grid-template-columns: repeat(3, 1fr); }
         .hero-cta-row { flex-direction: row; }
+        .cta-primary { transition: background 150ms ease, transform 150ms ease, box-shadow 150ms ease; }
+        .cta-primary:hover { background: #e05a28 !important; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(255,107,53,0.35); }
+        .cta-primary:active { transform: translateY(0); }
+        .cta-secondary { transition: border-color 150ms ease, color 150ms ease, transform 150ms ease; }
+        .cta-secondary:hover { border-color: #ff6b35 !important; color: #f6fafe !important; transform: translateY(-1px); }
+        .cta-secondary:active { transform: translateY(0); }
+        @media (prefers-reduced-motion: reduce) {
+          .cta-primary, .cta-secondary { transition: none !important; }
+          .cta-primary:hover, .cta-secondary:hover { transform: none !important; }
+        }
         @media (max-width: 600px) {
           .feature-grid { grid-template-columns: 1fr; }
           .hero-cta-row { flex-direction: column; align-items: center; width: 100%; }

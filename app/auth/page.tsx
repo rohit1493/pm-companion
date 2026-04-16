@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-browser'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { analytics } from '@/lib/analytics'
 
 type Mode = 'signin' | 'signup' | 'reset'
@@ -15,6 +16,7 @@ export default function AuthPage() {
   const [state, setState] = useState<State>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -147,14 +149,16 @@ export default function AuthPage() {
       <div style={{ maxWidth: '400px', width: '100%' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <p style={{
-            fontFamily: "'Manrope', sans-serif",
-            fontSize: '22px',
-            color: '#f6fafe',
-            marginBottom: '8px',
-          }}>
-            PM Dojo
-          </p>
+          <Link href="/" style={{ textDecoration: 'none' }}>
+            <p style={{
+              fontFamily: "'Manrope', sans-serif",
+              fontSize: '22px',
+              color: '#f6fafe',
+              marginBottom: '8px',
+            }}>
+              PM Dojo
+            </p>
+          </Link>
           <p style={{ fontSize: '14px', color: '#6b7685' }}>
             Your PM path is waiting.
           </p>
@@ -250,7 +254,7 @@ export default function AuthPage() {
                 Check your inbox and click the link.
               </p>
               <button
-                onClick={() => { setMode('signin'); setState('idle'); setErrorMsg('') }}
+                onClick={() => { setMode('signin'); setEmail(''); setPassword(''); setState('idle'); setErrorMsg('') }}
                 style={{
                   marginTop: '20px',
                   background: 'none',
@@ -300,23 +304,58 @@ export default function AuthPage() {
                   }}>
                     Password
                   </label>
-                  <input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={mode === 'signup' ? 'Create a password (min 6 chars)' : 'Your password'}
-                    required
-                    minLength={6}
-                    style={inputStyle}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = '#ff6b35' }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = '#2a3340' }}
-                  />
+                  <div style={{ position: 'relative', marginBottom: '16px' }}>
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={mode === 'signup' ? 'Create a password (min 6 chars)' : 'Your password'}
+                      required
+                      minLength={6}
+                      style={{ ...inputStyle, marginBottom: 0, paddingRight: '44px' }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = '#ff6b35' }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = '#2a3340' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        color: '#6b7685',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        outline: 'none',
+                      }}
+                    >
+                      {showPassword ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   {mode === 'signin' && (
                     <div style={{ textAlign: 'right', marginTop: '-8px', marginBottom: '16px' }}>
                       <button
                         type="button"
-                        onClick={() => { setMode('reset'); setState('idle'); setErrorMsg('') }}
+                        onClick={() => { setMode('reset'); setPassword(''); setShowPassword(false); setState('idle'); setErrorMsg('') }}
                         style={{
                           background: 'none',
                           border: 'none',
@@ -387,7 +426,7 @@ export default function AuthPage() {
             }}>
               {mode === 'signin' ? "Don't have an account? " : mode === 'signup' ? 'Already have an account? ' : 'Remember it? '}
               <button
-                onClick={() => { setMode(mode === 'signup' ? 'signin' : mode === 'reset' ? 'signin' : 'signup'); setErrorMsg(''); setState('idle') }}
+                onClick={() => { setMode(mode === 'signup' ? 'signin' : mode === 'reset' ? 'signin' : 'signup'); setEmail(''); setPassword(''); setShowPassword(false); setErrorMsg(''); setState('idle') }}
                 style={{
                   background: 'none',
                   border: 'none',

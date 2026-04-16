@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { assignArchetype, type Archetype } from '@/lib/archetypes'
 import LoadingScreen from './LoadingScreen'
 import { createClient } from '@/lib/supabase-browser'
@@ -282,7 +283,7 @@ function ArchetypeReveal({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        marginBottom: '24px',
+        marginBottom: '12px',
       }}>
         <div
           className="avatar-entrance avatar-glow-pulse"
@@ -338,7 +339,7 @@ function ArchetypeReveal({
         color: '#8b96a5',
         lineHeight: 1.6,
         maxWidth: '320px',
-        margin: '0 auto 32px',
+        margin: '0 auto 20px',
         animation: 'archetypeFadeUp 0.5s ease-out 0.3s forwards',
         opacity: 0,
       }}>
@@ -350,7 +351,7 @@ function ArchetypeReveal({
         border: '1px solid rgba(255,107,53,0.2)',
         borderRadius: '14px',
         padding: '16px 20px',
-        marginBottom: '32px',
+        marginBottom: '20px',
         textAlign: 'left',
         animation: 'archetypeFadeUp 0.5s ease-out 0.6s forwards',
         opacity: 0,
@@ -431,16 +432,18 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
         alignItems: 'center',
         marginBottom: '10px',
       }}>
-        <span style={{
-          fontFamily: "'Inter', sans-serif",
-          fontSize: '12px',
-          fontWeight: 500,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--text-muted)',
-        }}>
-          PM Dojo
-        </span>
+        <Link href="/" style={{ textDecoration: 'none', color: 'var(--text-muted)' }}>
+          <span style={{
+            fontFamily: "'Inter', sans-serif",
+            fontSize: '12px',
+            fontWeight: 500,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: 'var(--text-muted)',
+          }}>
+            PM Dojo
+          </span>
+        </Link>
         {current < total && (
           <span style={{
             fontFamily: "'Inter', sans-serif",
@@ -506,7 +509,7 @@ export default function OnboardingFlow() {
   // Stabilised total for the progress bar: on step 1 the goal hasn't been
   // confirmed yet, so keep the label fixed at "Step 1 of 4" (4-step baseline)
   // instead of jumping as the user clicks different options.
-  const progressBarTotal = step === 1 ? 5 : totalSteps
+  const progressBarTotal = (step === 1 && !goal) ? 5 : totalSteps
 
   function handleBack() {
     if (step === 3 && goal === 'deep_skill') {
