@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
+  const pathname = request.nextUrl.pathname
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,16 +28,33 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Protect /feed and /dashboard — redirect to /auth if not logged in
-  if (!user && (request.nextUrl.pathname.startsWith('/feed') || request.nextUrl.pathname.startsWith('/dashboard'))) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth'
-    return NextResponse.redirect(url)
+  if (user) {
+    // Logged-in users don't need landing or auth pages — send them straight to feed
+    if (pathname === '/' || pathname === '/auth') {
+      return NextResponse.redirect(new URL('/feed', request.url))
+    }
+
+    // Prevent logged-in users with a completed profile from re-doing onboarding
+    if (pathname === '/onboarding') {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('archetype')
+        .eq('user_id', user.id)
+        .maybeSingle()
+      if (profile?.archetype) {
+        return NextResponse.redirect(new URL('/feed', request.url))
+      }
+    }
+  } else {
+    // Unauthenticated users can't access protected routes
+    if (pathname.startsWith('/feed') || pathname.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/auth', request.url))
+    }
   }
 
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/feed/:path*', '/dashboard/:path*'],
+  matcher: ['/', '/auth', '/onboarding', '/feed/:path*', '/dashboard/:path*'],
 }

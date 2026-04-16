@@ -34,6 +34,22 @@ export async function GET(request: NextRequest) {
         console.error('exchangeCodeForSession error:', error.message)
         return NextResponse.redirect(new URL(`/auth?error=${encodeURIComponent(error.message)}`, request.url))
       }
+
+      // For default redirects (not explicit next= like password reset), check if the
+      // user has completed onboarding. First-time Google OAuth users have no profile.
+      if (next === '/feed') {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('archetype')
+            .eq('user_id', user.id)
+            .maybeSingle()
+          if (!profile?.archetype) {
+            return NextResponse.redirect(new URL('/onboarding', request.url))
+          }
+        }
+      }
     } catch (err) {
       console.error('callback route exception:', err)
       const msg = err instanceof Error ? err.message : 'callback_failed'

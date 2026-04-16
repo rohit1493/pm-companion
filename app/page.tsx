@@ -103,15 +103,27 @@ export default function Home() {
           >
             Build my PM path →
           </Link>
-          <span style={{
-            fontFamily: "'Manrope', sans-serif",
-            fontSize: '11px',
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            color: '#4a5568',
-          }}>
-            Pick your archetype · 60 seconds
-          </span>
+          <Link
+            href="/auth"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '56px',
+              padding: '0 28px',
+              background: 'transparent',
+              color: '#8b96a5',
+              borderRadius: '999px',
+              border: '1.5px solid #2a3340',
+              fontSize: '13px',
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textDecoration: 'none',
+              fontFamily: "'Manrope', sans-serif",
+            }}
+          >
+            Sign in
+          </Link>
         </div>
 
         {/* Feature cards */}
