@@ -58,6 +58,7 @@ type PathFeedData = {
   completedCount: number
   current: ProgressRow | null
   next: ProgressRow | null
+  nextNext: ProgressRow | null
   completed: ProgressRow[]
   quizReady: boolean
   quizArticleIds: string[]
@@ -886,6 +887,22 @@ export default function FeedClient() {
                       totalInPath={pathData.totalInPath}
                       onGatePassed={handleGatePassed}
                     />
+                  </div>
+                )}
+
+                {pathData.nextNext && pathData.next?.read_gate_passed && (
+                  <div className="feed-card-enter-3">
+                    <ArticleCard
+                      row={pathData.nextNext}
+                      totalInPath={pathData.totalInPath}
+                      onGatePassed={handleGatePassed}
+                    />
+                  </div>
+                )}
+
+                {pathData.nextNext && !pathData.next?.read_gate_passed && pathData.current?.read_gate_passed && (
+                  <div className="feed-card-enter-3">
+                    <LockedCard row={pathData.nextNext} totalInPath={pathData.totalInPath} />
                   </div>
                 )}
 

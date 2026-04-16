@@ -164,10 +164,15 @@ export async function GET() {
 
   const rows = progressRows || []
 
-  const completedRows = rows.filter((r) => r.completed)
-  const activeRows = rows.filter((r) => !r.completed)
+  // Separate first, then normalize positions independently so:
+  // - completed articles: positions 1..completedCount
+  // - active articles: positions completedCount+1..total
+  // This fixes duplicate position values from auto-heal regardless of DB row ordering.
+  const completedRows = rows.filter((r) => r.completed).map((r, i) => ({ ...r, position: i + 1 }))
+  const activeRows = rows.filter((r) => !r.completed).map((r, i) => ({ ...r, position: completedRows.length + i + 1 }))
   const current = activeRows[0] || null
   const next = activeRows[1] || null
+  const nextNext = activeRows[2] || null
 
   // Quiz trigger: articles with gate passed but not yet covered by a quiz session
   const { data: lastQuiz } = await supabaseAdmin
@@ -210,6 +215,7 @@ export async function GET() {
     completedCount: completedRows.length,
     current,
     next,
+    nextNext,
     completed: [...completedRows].reverse(),
     quizReady,
     quizArticleIds,
