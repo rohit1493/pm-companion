@@ -61,6 +61,7 @@ type PathFeedData = {
   completed: ProgressRow[]
   quizReady: boolean
   quizArticleIds: string[]
+  quizAfterCurrent: boolean
 }
 
 type ScannerFeedData = {
@@ -867,6 +868,7 @@ export default function FeedClient() {
                       row={pathData.current}
                       totalInPath={pathData.totalInPath}
                       onGatePassed={handleGatePassed}
+                      quizAfterThis={pathData.quizAfterCurrent}
                     />
                   </div>
                 )}

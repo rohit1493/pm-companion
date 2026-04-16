@@ -195,6 +195,11 @@ export async function GET() {
     .map((r) => (r.articles as any)?.id as string | undefined)
     .filter((id): id is string => !!id)
 
+  // Spec F6-07: indicator "Quiz coming up after this article 🧠" on current card
+  // when reading it will cross the quiz threshold. Fires one article before quiz.
+  const quizAfterCurrent =
+    !quizReady && gatedNotCovered.length >= 1 && !!current
+
   return NextResponse.json({
     viewType: 'path',
     archetypeKey: profile.archetype || '',
@@ -208,5 +213,6 @@ export async function GET() {
     completed: [...completedRows].reverse(),
     quizReady,
     quizArticleIds,
+    quizAfterCurrent,
   })
 }
