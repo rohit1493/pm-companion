@@ -101,7 +101,7 @@ export default function Home() {
               fontFamily: "'Manrope', sans-serif",
             }}
           >
-            Build my PM path →
+            Sign up free →
           </Link>
           <Link
             href="/auth"
@@ -110,9 +110,9 @@ export default function Home() {
               alignItems: 'center',
               justifyContent: 'center',
               height: '56px',
-              padding: '0 28px',
+              padding: '0 32px',
               background: 'transparent',
-              color: '#8b96a5',
+              color: '#c8d0da',
               borderRadius: '999px',
               border: '1.5px solid #2a3340',
               fontSize: '13px',
@@ -122,7 +122,7 @@ export default function Home() {
               fontFamily: "'Manrope', sans-serif",
             }}
           >
-            Sign in
+            Log in
           </Link>
         </div>
 
