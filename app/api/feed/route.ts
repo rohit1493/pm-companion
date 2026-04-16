@@ -157,7 +157,8 @@ export async function GET() {
           quiz_q1,
           quiz_a1,
           quiz_q2,
-          quiz_a2
+          quiz_a2,
+          is_active
         )
       `)
       .eq('user_id', user.id)
