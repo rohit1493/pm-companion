@@ -184,17 +184,45 @@ export async function GET() {
     const dd = String(date.getDate()).padStart(2, '0')
     return `${y}-${m}-${dd}`
   }
+  // Active days come from THREE sources so the calendar matches the streak
+  // (STR-03): quiz session completions (the actual streak trigger per spec §8),
+  // article completions, and legacy daily_articles — unioned.
+  const activeDates = new Set<string>()
+  for (const r of completedProgress) {
+    if (r.completed_at) activeDates.add(toLocalDateString(new Date(r.completed_at)))
+  }
+  for (const s of sessions) {
+    if (s.completed_at) activeDates.add(toLocalDateString(new Date(s.completed_at)))
+  }
+  // If profile.streak_last_updated points at a day, it should always be marked
+  // as active — otherwise a user with streak=N can still see the most recent
+  // dot empty (the root of STR-03 on users whose completed_at lagged behind).
+  if (profile?.streak_last_updated) {
+    activeDates.add(toLocalDateString(new Date(profile.streak_last_updated)))
+  }
+
   const last7: { date: string; read: boolean }[] = []
-  const completedDates = new Set(
-    completedProgress
-      .filter((r) => r.completed_at)
-      .map((r) => toLocalDateString(new Date(r.completed_at!)))
-  )
   for (let i = 6; i >= 0; i--) {
     const d = toLocalDateString(new Date(Date.now() - i * 86400000))
     const fromDailyArticles = (allDays || []).find((a) => a.assigned_date === d)
-    const fromProgress = completedDates.has(d)
-    last7.push({ date: d, read: (fromDailyArticles?.read || false) || fromProgress })
+    last7.push({ date: d, read: (fromDailyArticles?.read || false) || activeDates.has(d) })
+  }
+
+  // STR-03 backfill: if the user has a live streak but the union above shows
+  // fewer active days than the streak value, fill in the trailing `streak`
+  // days ending at streak_last_updated. This is defensive — it keeps the
+  // calendar honest when quiz_sessions / user_progress rows are missing
+  // timestamps (legacy rows) but the streak counter is intact.
+  if (profile?.archetype && profile?.streak && profile.streak > 0 && profile.streak_last_updated) {
+    const anchor = new Date(profile.streak_last_updated)
+    const backfillCount = Math.min(profile.streak, 7)
+    for (let i = 0; i < backfillCount; i++) {
+      const d = new Date(anchor)
+      d.setDate(d.getDate() - i)
+      const ds = toLocalDateString(d)
+      const idx = last7.findIndex((row) => row.date === ds)
+      if (idx !== -1) last7[idx].read = true
+    }
   }
 
   // Recent reads (from user_progress if available, else daily_articles)

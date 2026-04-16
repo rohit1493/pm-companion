@@ -112,14 +112,34 @@ export default function DashboardClient() {
     })
   }, [])
 
-  function handleShare() {
-    if (!userId) return
+  async function handleShare() {
+    if (!userId || !data) return
     const shareUrl = `${window.location.origin}/share/${userId}`
-    navigator.clipboard.writeText(shareUrl).then(() => {
+    const shareText = `I'm on a ${data.streak}-day streak on PM Dojo 🔥 sharpening my PM edge.`
+
+    // Native share sheet first — opens OS-level options on mobile + supported browsers.
+    // Clipboard fallback for desktop browsers without navigator.share.
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: 'PM Dojo', text: shareText, url: shareUrl })
+        analytics.streakShared(data.streak)
+        return
+      } catch (err) {
+        // User cancelled the share sheet — nothing to do.
+        if (err instanceof Error && err.name === 'AbortError') return
+        // Any other error falls through to clipboard.
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(`${shareText} ${shareUrl}`)
       setCopyToast(true)
       setTimeout(() => setCopyToast(false), 2500)
-      if (data) analytics.streakShared(data.streak)
-    })
+      analytics.streakShared(data.streak)
+    } catch {
+      // Clipboard blocked (no HTTPS, no permission, etc.) — last-resort: open share URL
+      window.open(shareUrl, '_blank', 'noopener,noreferrer')
+    }
   }
 
   const archetypeKey = data?.archetype ?? null
@@ -499,6 +519,7 @@ export default function DashboardClient() {
               <div style={{ marginBottom: '16px', position: 'relative' }}>
                 <button
                   onClick={handleShare}
+                  disabled={!userId}
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -509,15 +530,16 @@ export default function DashboardClient() {
                     fontSize: '14px',
                     fontWeight: 500,
                     color: 'var(--archetype-primary)',
-                    cursor: 'pointer',
+                    cursor: userId ? 'pointer' : 'wait',
+                    opacity: userId ? 1 : 0.6,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
                     outline: 'none',
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#1a2332' }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#121821' }}
+                  onMouseEnter={(e) => { if (userId) (e.currentTarget as HTMLButtonElement).style.background = '#1a2332' }}
+                  onMouseLeave={(e) => { if (userId) (e.currentTarget as HTMLButtonElement).style.background = '#121821' }}
                 >
                   <span>🔗</span> Share your {data.streak}-day streak
                 </button>
