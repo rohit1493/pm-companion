@@ -60,12 +60,14 @@ export async function GET(request: NextRequest) {
   }
   const questions: Question[] = []
 
-  // Collect all answers upfront — use as cross-distractors so options differ per question
-  const allAnswers: string[] = articles.flatMap((a) =>
-    [a.quiz_a1, a.quiz_a2].filter((ans): ans is string => !!ans)
-  )
-
+  // Only use answers from OTHER articles as cross-distractors.
+  // Using answers from the same article causes all options to repeat across
+  // both questions of that article (the other answer swaps between correct/distractor).
   for (const article of articles) {
+    const otherAnswers = articles
+      .filter((a) => a.id !== article.id)
+      .flatMap((a) => [a.quiz_a1, a.quiz_a2].filter((ans): ans is string => !!ans))
+
     // H8 fix: guard both q1 and q2 so total never exceeds 4
     if (article.quiz_q1 && article.quiz_a1 && questions.length < 4) {
       questions.push({
@@ -74,7 +76,7 @@ export async function GET(request: NextRequest) {
         article_title: article.title,
         question: article.quiz_q1,
         correct_answer: article.quiz_a1,
-        options: shuffleOptions(article.quiz_a1, getDistractors(article.quiz_a1, allAnswers)),
+        options: shuffleOptions(article.quiz_a1, getDistractors(article.quiz_a1, otherAnswers)),
       })
     }
     if (article.quiz_q2 && article.quiz_a2 && questions.length < 4) {
@@ -84,7 +86,7 @@ export async function GET(request: NextRequest) {
         article_title: article.title,
         question: article.quiz_q2,
         correct_answer: article.quiz_a2,
-        options: shuffleOptions(article.quiz_a2, getDistractors(article.quiz_a2, allAnswers)),
+        options: shuffleOptions(article.quiz_a2, getDistractors(article.quiz_a2, otherAnswers)),
       })
     }
     if (questions.length >= 4) break
