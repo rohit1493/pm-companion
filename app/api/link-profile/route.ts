@@ -54,11 +54,12 @@ export async function POST(request: NextRequest) {
       .eq('session_id', session_id)
       .maybeSingle()
 
-    const betterArchetype = sessionProfile?.archetype && sessionProfile.archetype !== 'scanner'
-    const currentIsBad = !existing.archetype || existing.archetype === 'scanner'
+    const sessionHasArchetype = sessionProfile?.archetype && sessionProfile.archetype !== 'scanner'
 
-    if (betterArchetype && currentIsBad) {
-      // Update linked profile with correct archetype + rebuild sequence
+    if (sessionHasArchetype) {
+      // Always update to the most recent onboarding session's archetype.
+      // This fixes the bug where re-doing onboarding produced a new archetype
+      // but link-profile kept the old one because it wasn't "bad" (non-scanner).
       await supabaseAdmin
         .from('user_profiles')
         .update({
