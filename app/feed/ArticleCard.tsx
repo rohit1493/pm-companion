@@ -33,7 +33,7 @@ type GateState = 'idle' | 'reading' | 'returned_fail' | 'returned_pass'
 
 function DifficultyBadge({ level }: { level: number }) {
   const colors: Record<number, { bg: string; color: string; label: string }> = {
-    1: { bg: 'rgba(74,222,128,0.08)', color: '#4ade80', label: 'Beginner' },
+    1: { bg: 'rgba(74,222,128,0.08)', color: '#4ade80', label: 'Basic' },
     2: { bg: 'rgba(234,88,12,0.08)', color: '#EA580C', label: 'Intermediate' },
     3: { bg: 'rgba(220,38,38,0.15)', color: '#DC2626', label: 'Advanced' },
   }

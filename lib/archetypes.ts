@@ -112,15 +112,18 @@ export function buildSequence(
 
   const scored = eligible.map((a) => ({
     id: a.id,
-    // Weighted score + tiny randomness for variety within same tier
-    score: (weights[a.category ?? ''] ?? 0) + Math.random() * 0.3,
+    weight: weights[a.category ?? ''] ?? 0,
     difficulty: a.difficulty ?? 1,
+    jitter: Math.random(),
   }))
 
-  // High score first; within same score bracket, easier articles come first (beginner→advanced ramp)
+  // Spec F6-04: weak-area first (by category weight), then Basic → Intermediate →
+  // Advanced within each group. Random jitter is only a last-resort tiebreaker so
+  // two same-weight same-difficulty articles don't always appear in insertion order.
   scored.sort((a, b) => {
-    if (Math.abs(b.score - a.score) > 0.01) return b.score - a.score
-    return a.difficulty - b.difficulty
+    if (a.weight !== b.weight) return b.weight - a.weight
+    if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty
+    return a.jitter - b.jitter
   })
 
   return scored.slice(0, count).map((a) => a.id)
