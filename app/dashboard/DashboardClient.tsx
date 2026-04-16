@@ -7,6 +7,7 @@ import { analytics } from '@/lib/analytics'
 import { useArchetypeTheme } from '@/hooks/useArchetypeTheme'
 import { getAvatarComponent } from '@/components/avatars'
 import { getTheme } from '@/lib/archetype-themes'
+import ProfileEditorModal from './ProfileEditorModal'
 
 type DashboardData = {
   streak: number
@@ -46,6 +47,11 @@ type DashboardData = {
     dataThinking: number
   }
   quizSessions: number
+  // Profile editor fields
+  avatar: string
+  primaryGoal: string | null
+  upskillFocus: string | null
+  targetCompany: string | null
 }
 
 function StatCard({ value, label, accent, accentColor }: { value: string | number; label: string; accent?: boolean; accentColor?: string }) {
@@ -90,6 +96,8 @@ export default function DashboardClient() {
   const [userId, setUserId] = useState('')
   const [copyToast, setCopyToast] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
+  const [profileModalMode, setProfileModalMode] = useState<'edit' | 'new'>('edit')
 
   useEffect(() => {
     fetch('/api/dashboard')
@@ -111,6 +119,12 @@ export default function DashboardClient() {
       if (user?.id) setUserId(user.id)
     })
   }, [])
+
+  function handleProfileSaved(_newArchetype: string) {
+    setProfileModalOpen(false)
+    // Reload dashboard data, then redirect to feed
+    window.location.href = '/feed'
+  }
 
   async function handleShare() {
     if (!userId || !data) return
@@ -433,6 +447,42 @@ export default function DashboardClient() {
                   <p style={{ fontFamily: "'Inter', sans-serif", fontSize: '13px', color: 'var(--archetype-secondary)', lineHeight: 1.5 }}>
                     {data.archetypeTagline}
                   </p>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'center' }}>
+                    <button
+                      onClick={() => { setProfileModalMode('edit'); setProfileModalOpen(true) }}
+                      style={{
+                        padding: '8px 18px',
+                        background: 'rgba(255,107,53,0.12)',
+                        border: '1px solid rgba(255,107,53,0.3)',
+                        borderRadius: '999px',
+                        color: '#ff6b35',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        cursor: 'pointer',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => { setProfileModalMode('new'); setProfileModalOpen(true) }}
+                      style={{
+                        padding: '8px 18px',
+                        background: 'transparent',
+                        border: '1px solid #2a3340',
+                        borderRadius: '999px',
+                        color: '#8b96a5',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                        cursor: 'pointer',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      New Path
+                    </button>
+                  </div>
                 </div>
 
                 {/* Path progress */}
@@ -675,6 +725,19 @@ export default function DashboardClient() {
           </>
         )}
       </main>
+
+      {data && (
+        <ProfileEditorModal
+          open={profileModalOpen}
+          mode={profileModalMode}
+          initialAvatar={data.avatar ?? 'sensei'}
+          initialGoal={data.primaryGoal}
+          initialTarget={data.targetCompany}
+          initialFocus={data.upskillFocus}
+          onClose={() => setProfileModalOpen(false)}
+          onSaved={handleProfileSaved}
+        />
+      )}
     </div>
   )
 }

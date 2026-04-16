@@ -31,7 +31,7 @@ export async function GET() {
   // User profile (with archetype fields) — use limit(1) to handle edge case of multiple linked rows
   const { data: profileRows } = await supabaseAdmin
     .from('user_profiles')
-    .select('experience_level, primary_goal, topics, archetype, archetype_display, archetype_tagline, sequence, streak, streak_last_updated')
+    .select('experience_level, primary_goal, topics, archetype, archetype_display, archetype_tagline, sequence, streak, streak_last_updated, upskill_focus, target_company, avatar')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -300,5 +300,10 @@ export async function GET() {
     dojoScore,
     pmEdgeScore,
     quizSessions: sessions.length,
+    // Profile editor fields
+    avatar: profile?.avatar ?? 'sensei',
+    primaryGoal: profile?.primary_goal ?? null,
+    upskillFocus: profile?.upskill_focus ?? null,
+    targetCompany: profile?.target_company ?? null,
   })
 }
