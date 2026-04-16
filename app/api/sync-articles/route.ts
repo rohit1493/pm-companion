@@ -48,6 +48,23 @@ function stripJsonFences(raw: string): string {
     .trim()
 }
 
+// Paywall signals found in RSS descriptions of gated posts (Substack, Medium, etc.)
+const PAYWALL_SIGNALS = [
+  'paid subscriber',
+  'subscribe to read',
+  'for subscribers only',
+  'upgrade to read',
+  'unlock this post',
+  'this post is for paying',
+  'become a paid member',
+  'paying member',
+]
+
+function isPaywalled(title: string, summary: string): boolean {
+  const text = `${title} ${summary}`.toLowerCase()
+  return PAYWALL_SIGNALS.some((s) => text.includes(s))
+}
+
 async function isUrlAlive(url: string): Promise<boolean> {
   try {
     const res = await fetch(url, {
@@ -191,15 +208,16 @@ export async function GET(request: NextRequest) {
         if (!alive) { skipped++; continue }
 
         const summary = stripHtml(item.contentSnippet || item.content || item.summary || '')
+        const title = item.title?.trim() || 'Untitled'
         const article = {
-          title: item.title?.trim() || 'Untitled',
+          title,
           url,
           source: source.name,
           published_at: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
           summary: summary.slice(0, 400),
           topics: source.topics,
           reading_time_minutes: estimateReadingTime(summary),
-          is_active: true,
+          is_active: !isPaywalled(title, summary),
         }
 
         const { error } = await supabaseAdmin

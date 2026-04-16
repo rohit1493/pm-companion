@@ -46,6 +46,8 @@ export async function GET() {
       .from('articles')
       .select('id, title, url, source, published_at, summary, summary_short, topics, reading_time_minutes, category, difficulty, hooks, key_insight')
       .eq('is_active', true)
+      .not('summary', 'ilike', '%paid subscriber%')
+      .not('summary', 'ilike', '%subscribe to read%')
       .order('published_at', { ascending: false })
       .limit(20)
 
@@ -86,7 +88,8 @@ export async function GET() {
         quiz_q1,
         quiz_a1,
         quiz_q2,
-        quiz_a2
+        quiz_a2,
+        is_active
       )
     `)
     .eq('user_id', user.id)
@@ -162,7 +165,16 @@ export async function GET() {
     progressRows = rebuilt
   }
 
-  const rows = progressRows || []
+  // Filter out paywalled articles that may have been baked into an existing sequence
+  const rows = (progressRows || []).filter((r) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const a = r.articles as any
+    if (!a) return false
+    if (a.is_active === false) return false
+    const text = `${a.summary || ''}`.toLowerCase()
+    if (text.includes('paid subscriber') || text.includes('subscribe to read')) return false
+    return true
+  })
 
   // Separate first, then normalize positions independently so:
   // - completed articles: positions 1..completedCount
