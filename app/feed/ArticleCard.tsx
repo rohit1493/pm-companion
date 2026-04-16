@@ -33,7 +33,7 @@ type GateState = 'idle' | 'reading' | 'returned_fail' | 'returned_pass'
 
 function DifficultyBadge({ level }: { level: number }) {
   const colors: Record<number, { bg: string; color: string; label: string }> = {
-    1: { bg: 'rgba(74,222,128,0.08)', color: '#4ade80', label: 'Beginner' },
+    1: { bg: 'rgba(74,222,128,0.08)', color: '#4ade80', label: 'Basic' },
     2: { bg: 'rgba(234,88,12,0.08)', color: '#EA580C', label: 'Intermediate' },
     3: { bg: 'rgba(220,38,38,0.15)', color: '#DC2626', label: 'Advanced' },
   }
@@ -57,10 +57,12 @@ export default function ArticleCard({
   row,
   totalInPath,
   onGatePassed,
+  quizAfterThis = false,
 }: {
   row: ProgressRow
   totalInPath: number
   onGatePassed: () => void
+  quizAfterThis?: boolean
 }) {
   const article = row.articles
   const [gateState, setGateState] = useState<GateState>(
@@ -251,10 +253,27 @@ export default function ArticleCard({
           </p>
         )}
 
-        {/* Source */}
-        <p style={{ fontSize: '12px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
-          {article.source}
-        </p>
+        {/* Source + quiz-coming hint */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <p style={{ fontSize: '12px', color: '#6b7685', fontFamily: "'Inter', sans-serif" }}>
+            {article.source}
+          </p>
+          {quizAfterThis && (
+            <span style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '11px',
+              fontWeight: 500,
+              color: '#a78bfa',
+              background: 'rgba(167,139,250,0.10)',
+              border: '1px solid rgba(167,139,250,0.25)',
+              padding: '3px 10px',
+              borderRadius: '99px',
+              whiteSpace: 'nowrap',
+            }}>
+              Quiz coming up after this article 🧠
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Gate / CTA area */}

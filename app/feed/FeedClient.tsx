@@ -61,6 +61,7 @@ type PathFeedData = {
   completed: ProgressRow[]
   quizReady: boolean
   quizArticleIds: string[]
+  quizAfterCurrent: boolean
 }
 
 type ScannerFeedData = {
@@ -867,6 +868,7 @@ export default function FeedClient() {
                       row={pathData.current}
                       totalInPath={pathData.totalInPath}
                       onGatePassed={handleGatePassed}
+                      quizAfterThis={pathData.quizAfterCurrent}
                     />
                   </div>
                 )}
@@ -1048,14 +1050,16 @@ export default function FeedClient() {
               setShowChangeFighter(false)
               setBurstFighter(key)
               setBurstOrigin({ x, y })
-              // Patch DB
-              const supabaseClient = createClient()
-              const { data: { user } } = await supabaseClient.auth.getUser()
-              if (user) {
-                await supabaseClient
-                  .from('user_profiles')
-                  .update({ avatar: key })
-                  .eq('user_id', user.id)
+              // Persist via server route — admin client bypasses RLS so the
+              // write actually lands (CF-04).
+              const res = await fetch('/api/user-profile', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ avatar: key }),
+              })
+              if (!res.ok) {
+                console.error('Failed to save fighter choice', await res.text())
+                return
               }
               // Update feedData in state so chip updates immediately
               if (feedData) {
