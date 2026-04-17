@@ -78,11 +78,27 @@ async function isUrlAlive(url: string): Promise<boolean> {
   }
 }
 
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  'Product Strategy': 'product vision, roadmaps, prioritisation frameworks, competitive positioning, build vs buy decisions',
+  'AI': 'artificial intelligence products, machine learning, LLMs, building AI-powered features, AI strategy for PMs',
+  'Growth': 'user acquisition, activation, retention, referral, revenue loops, growth experiments, PLG',
+  'Analytics': 'metrics frameworks, A/B testing, data analysis, dashboards, KPIs, measuring product success',
+  'GTM': 'go-to-market strategy, product launches, pricing, distribution, sales-led vs product-led growth',
+  'Startups': 'early-stage company building, founding, fundraising, startup culture, 0-to-1 product development',
+  'B2B/SaaS': 'enterprise software, SaaS metrics (ARR/churn/NRR), B2B sales cycles, customer success, PLG in B2B',
+  'Design & UX': 'user research, interaction design, usability testing, design systems, information architecture',
+  'PM Career': 'PM career growth, job interviews, PM skills, stakeholder management, leadership, soft skills',
+  'Case Studies & Teardowns': 'analysis of specific products, companies, or features — how and why they succeeded or failed',
+}
+
 function buildEnrichPrompt(title: string, summary: string, strict: boolean): string {
-  const categoryList = ALLOWED_CATEGORIES.join(', ')
+  const categoryList = ALLOWED_CATEGORIES.map(
+    (c) => `"${c}" — ${CATEGORY_DESCRIPTIONS[c] ?? c}`
+  ).join('\n')
+
   const strictNote = strict
-    ? `CRITICAL: You MUST choose the category from this exact list. No variations allowed: ${categoryList}`
-    : `Pick the single best match from: ${categoryList}`
+    ? `CRITICAL: You MUST choose one of these exact category strings. No variations, no new categories:`
+    : `Choose the single best matching category string from this list:`
 
   return `You are enriching a PM article for a learning app. Given the article title and summary, generate the following JSON. Respond ONLY with valid JSON, no markdown.
 
@@ -90,6 +106,13 @@ Article title: ${title}
 Article summary: ${summary.slice(0, 500)}
 
 ${strictNote}
+${categoryList}
+
+Rules for category selection:
+- If the article is about general software engineering, architecture, or programming (not PM-focused), still pick the closest PM-relevant category
+- "AI" is for AI product strategy and building AI products — NOT general computer science theory
+- "PM Career" is only for articles explicitly about the PM job, interviews, or career development
+- When in doubt between two categories, pick the one a PM reading it would find more useful
 
 Generate:
 {

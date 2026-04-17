@@ -18,8 +18,9 @@ const ARCHETYPES: Record<ArchetypeKey, Archetype> = {
       'Product Strategy': 3,
       'Case Studies & Teardowns': 3,
       'PM Career': 2,
+      'Analytics': 2,
       'AI': 1,
-      'Analytics': 1,
+      'Design & UX': 1,
     },
   },
   startup_climber: {
@@ -32,6 +33,8 @@ const ARCHETYPES: Record<ArchetypeKey, Archetype> = {
       'GTM': 3,
       'Growth': 2,
       'B2B/SaaS': 2,
+      'Product Strategy': 1,
+      'Case Studies & Teardowns': 1,
     },
   },
   ai_first_pm: {
@@ -95,6 +98,13 @@ export function assignArchetype(
 // Build a sequence weighted by archetype category preferences.
 // excludeIds: articles already in the user's path — prevents duplicates on refresh.
 // count: how many articles to return (default 10).
+//
+// Personalization guarantee: matched (weight > 0) articles always fill first.
+// Off-topic (weight 0) articles are only used as last-resort padding, capped at
+// MAX_UNMATCHED_PADDING to prevent irrelevant articles like a Turing-test essay
+// appearing in a startup_climber's feed.
+const MAX_UNMATCHED_PADDING = 2
+
 export function buildSequence(
   archetype: Archetype,
   articles: { id: string; category: string | null; difficulty: number | null }[],
@@ -117,16 +127,31 @@ export function buildSequence(
     jitter: Math.random(),
   }))
 
-  // Spec F6-04: weak-area first (by category weight), then Basic → Intermediate →
-  // Advanced within each group. Random jitter is only a last-resort tiebreaker so
-  // two same-weight same-difficulty articles don't always appear in insertion order.
-  scored.sort((a, b) => {
+  // Split into matched (weight > 0) and unmatched (weight = 0)
+  const matched = scored.filter((a) => a.weight > 0)
+  const unmatched = scored.filter((a) => a.weight === 0)
+
+  // Sort matched: highest weight first, then Basic → Advanced, then random jitter
+  matched.sort((a, b) => {
     if (a.weight !== b.weight) return b.weight - a.weight
     if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty
     return a.jitter - b.jitter
   })
 
-  return scored.slice(0, count).map((a) => a.id)
+  // Sort unmatched: easiest first so padding is at least digestible
+  unmatched.sort((a, b) => {
+    if (a.difficulty !== b.difficulty) return a.difficulty - b.difficulty
+    return a.jitter - b.jitter
+  })
+
+  // Fill with matched articles first; pad with at most MAX_UNMATCHED_PADDING unmatched
+  const sequence = matched.slice(0, count)
+  if (sequence.length < count) {
+    const paddingNeeded = Math.min(count - sequence.length, MAX_UNMATCHED_PADDING)
+    sequence.push(...unmatched.slice(0, paddingNeeded))
+  }
+
+  return sequence.map((a) => a.id)
 }
 
 export { ARCHETYPES }
