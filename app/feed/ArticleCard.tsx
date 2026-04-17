@@ -341,29 +341,32 @@ export default function ArticleCard({
                 color: '#f87171',
                 marginBottom: '4px',
               }}>
-                Almost there — ~{remaining}s more
+                Need ~{remaining}s more reading time
               </p>
               <p style={{ fontSize: '13px', color: '#8b96a5', fontFamily: "'Inter', sans-serif" }}>
-                Switch back to the article tab to keep reading. Timer resumes automatically.
+                Click the button below to open the article, finish reading, then come back here. The timer tracks automatically when you switch tabs.
               </p>
             </div>
             <button
               onClick={handleReadClick}
               style={{
                 width: '100%',
-                padding: '12px',
-                background: 'transparent',
-                color: '#6b7685',
-                border: '1px solid #2a3340',
+                padding: '14px',
+                background: '#ff6b35',
+                color: 'white',
+                border: 'none',
                 borderRadius: '10px',
                 fontFamily: "'Inter', sans-serif",
-                fontSize: '13px',
-                fontWeight: 400,
+                fontSize: '15px',
+                fontWeight: 500,
                 cursor: 'pointer',
                 outline: 'none',
+                transition: 'background 150ms ease',
               }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#e05a28' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#ff6b35' }}
             >
-              Re-open article →
+              Continue reading →
             </button>
           </div>
         )}

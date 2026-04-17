@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         article_title: article.title,
         question: article.quiz_q1,
         correct_answer: article.quiz_a1,
-        options: shuffleOptions(article.quiz_a1, getDistractors(article.quiz_a1, otherAnswers)),
+        options: shuffleOptions(article.quiz_a1, getDistractors(article.quiz_a1, otherAnswers, questions.length)),
       })
     }
     if (article.quiz_q2 && article.quiz_a2 && questions.length < 4) {
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
         article_title: article.title,
         question: article.quiz_q2,
         correct_answer: article.quiz_a2,
-        options: shuffleOptions(article.quiz_a2, getDistractors(article.quiz_a2, otherAnswers)),
+        options: shuffleOptions(article.quiz_a2, getDistractors(article.quiz_a2, otherAnswers, questions.length)),
       })
     }
     if (questions.length >= 4) break
@@ -176,30 +176,32 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ success: true, streak: newStreak })
 }
 
-// Use other articles' answers as cross-distractors — falls back to generic pool only if needed
-function getDistractors(correctAnswer: string, allAnswers: string[]): string[] {
+// Use other articles' answers as cross-distractors — falls back to generic pool only if needed.
+// questionIndex ensures different fallbacks are picked for each question slot, preventing
+// identical option sets across Q1 and Q2 when the distractor pool is small (e.g. 2 articles).
+function getDistractors(correctAnswer: string, allAnswers: string[], questionIndex: number): string[] {
   // Other answers from the quiz batch are plausible but wrong — best distractors
   const crossDistractors = allAnswers.filter((a) => a !== correctAnswer)
   if (crossDistractors.length >= 3) return crossDistractors.slice(0, 3)
 
-  // Fallback pool — varied by answer length to stay contextually plausible
-  const isShort = correctAnswer.length < 25
-  const fallbacks = isShort
-    ? [
-        'Reduce time-to-market above all else',
-        'Maximise feature output per sprint',
-        'Optimise for internal stakeholder approval',
-        'Defer user research to post-launch',
-      ]
-    : [
-        'Focus on shipping features faster than competitors',
-        'Prioritise engineering velocity over user feedback loops',
-        'Measure success primarily through internal OKR completion',
-        'Treat qualitative signals as lower priority than quantitative data',
-      ]
+  // Fallback pool A and B — offset by questionIndex so adjacent questions never share all options
+  const fallbacksA = [
+    'Reduce time-to-market above all else',
+    'Focus on shipping features faster than competitors',
+    'Optimise for internal stakeholder approval',
+    'Defer user research to post-launch',
+  ]
+  const fallbacksB = [
+    'Prioritise engineering velocity over user feedback loops',
+    'Maximise feature output per sprint',
+    'Measure success primarily through internal OKR completion',
+    'Treat qualitative signals as lower priority than quantitative data',
+  ]
+  // Even question indices use pool A, odd use pool B — breaks the repeat pattern
+  const pool = questionIndex % 2 === 0 ? fallbacksA : fallbacksB
 
   // Mix cross-distractors with fallbacks so options are never identical across questions
-  return [...crossDistractors, ...fallbacks].slice(0, 3)
+  return [...crossDistractors, ...pool].slice(0, 3)
 }
 
 function shuffleOptions(correct: string, distractors: string[]): string[] {

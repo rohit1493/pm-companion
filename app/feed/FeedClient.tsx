@@ -906,6 +906,32 @@ export default function FeedClient() {
                   </div>
                 )}
 
+                {/* Caught up — gate passed on current but no next article yet, quiz not ready */}
+                {pathData.current?.read_gate_passed && !pathData.next && !pathData.quizReady && (
+                  <div style={{
+                    background: 'rgba(74,222,128,0.06)',
+                    border: '1px solid rgba(74,222,128,0.2)',
+                    borderRadius: '16px',
+                    padding: '28px 24px',
+                    textAlign: 'center',
+                    marginTop: '8px',
+                  }}>
+                    <div style={{ fontSize: '32px', marginBottom: '12px' }}>✅</div>
+                    <p style={{
+                      fontFamily: "'Manrope', sans-serif",
+                      fontSize: '17px',
+                      fontWeight: 600,
+                      color: '#4ade80',
+                      marginBottom: '6px',
+                    }}>
+                      You&apos;re done for today!
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#6b7685', fontFamily: "'Inter', sans-serif", lineHeight: 1.6 }}>
+                      Great work — come back tomorrow and the next article will be waiting. Keep the streak going!
+                    </p>
+                  </div>
+                )}
+
                 {pathData.current === null && pathData.completedCount === pathData.totalInPath && pathData.totalInPath > 0 && (
                   <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
