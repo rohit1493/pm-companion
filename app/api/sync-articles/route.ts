@@ -48,8 +48,10 @@ function stripJsonFences(raw: string): string {
     .trim()
 }
 
-// Paywall signals found in RSS descriptions of gated posts (Substack, Medium, etc.)
+// Paywall signals — checked against RSS text and the first 8KB of the live page.
+// Keep in sync with app/api/feed/route.ts → PAYWALL_SIGNALS
 const PAYWALL_SIGNALS = [
+  // RSS-level signals (truncated preview text)
   'paid subscriber',
   'subscribe to read',
   'for subscribers only',
@@ -58,6 +60,23 @@ const PAYWALL_SIGNALS = [
   'this post is for paying',
   'become a paid member',
   'paying member',
+  // Page-level signals (HTML / rendered text)
+  'subscribe to continue reading',
+  'continue reading with a subscription',
+  'this is a subscriber-only',
+  'this post is only for paid',
+  'this content is for subscribers',
+  'members-only',
+  'member only',
+  'member-only story',
+  'get unlimited access',
+  'already a subscriber? sign in',
+  'read the full story',
+  'this story is for paying',
+  'metered paywall',
+  'you\'ve used all your free',
+  'you have reached your free',
+  'register to read',
 ]
 
 function isPaywalled(title: string, summary: string): boolean {
@@ -65,16 +84,34 @@ function isPaywalled(title: string, summary: string): boolean {
   return PAYWALL_SIGNALS.some((s) => text.includes(s))
 }
 
-async function isUrlAlive(url: string): Promise<boolean> {
+// Fetch the first 8KB of a page and check both liveness and soft-paywall signals.
+// Returns alive=false on network errors / 4xx-5xx. paywalled=true if paywall pattern found.
+async function checkUrl(url: string): Promise<{ alive: boolean; paywalled: boolean }> {
   try {
     const res = await fetch(url, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(5000),
+      method: 'GET',
+      signal: AbortSignal.timeout(8000),
       redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PMDojo/1.0)' },
     })
-    return res.status < 400
+    if (res.status >= 400) return { alive: false, paywalled: false }
+
+    // Read only the first 8 KB to keep sync fast
+    const reader = res.body?.getReader()
+    if (!reader) return { alive: true, paywalled: false }
+    let html = ''
+    while (html.length < 8192) {
+      const { done, value } = await reader.read()
+      if (done) break
+      html += new TextDecoder().decode(value)
+    }
+    reader.cancel().catch(() => {})
+
+    const sample = html.toLowerCase()
+    const paywalled = PAYWALL_SIGNALS.some((s) => sample.includes(s))
+    return { alive: true, paywalled }
   } catch {
-    return false
+    return { alive: false, paywalled: false }
   }
 }
 
@@ -226,12 +263,13 @@ export async function GET(request: NextRequest) {
         const url = item.link || item.guid || ''
         if (!url) { skipped++; continue }
 
-        // HEAD check — skip dead URLs
-        const alive = await isUrlAlive(url)
+        // GET check — skip dead URLs and soft-paywalled pages
+        const { alive, paywalled: pagePaywalled } = await checkUrl(url)
         if (!alive) { skipped++; continue }
 
         const summary = stripHtml(item.contentSnippet || item.content || item.summary || '')
         const title = item.title?.trim() || 'Untitled'
+        const isActive = !isPaywalled(title, summary) && !pagePaywalled
         const article = {
           title,
           url,
@@ -240,7 +278,7 @@ export async function GET(request: NextRequest) {
           summary: summary.slice(0, 400),
           topics: source.topics,
           reading_time_minutes: estimateReadingTime(summary),
-          is_active: !isPaywalled(title, summary),
+          is_active: isActive,
         }
 
         const { error } = await supabaseAdmin

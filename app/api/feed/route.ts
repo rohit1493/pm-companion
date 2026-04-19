@@ -19,6 +19,22 @@ const PAYWALL_SIGNALS = [
   'this post is for paying',
   'become a paid member',
   'paying member',
+  'subscribe to continue reading',
+  'continue reading with a subscription',
+  'this is a subscriber-only',
+  'this post is only for paid',
+  'this content is for subscribers',
+  'members-only',
+  'member only',
+  'member-only story',
+  'get unlimited access',
+  'already a subscriber? sign in',
+  'read the full story',
+  'this story is for paying',
+  'metered paywall',
+  'you\'ve used all your free',
+  'you have reached your free',
+  'register to read',
 ]
 
 function isPaywalled(title: string | null, summary: string | null): boolean {
