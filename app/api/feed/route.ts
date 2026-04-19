@@ -208,6 +208,10 @@ export async function GET() {
   const maxActive = Math.max(0, 10 - completedRows.length)
   let activeRows = allActiveRows.slice(0, maxActive).map((r, i) => ({ ...r, position: completedRows.length + i + 1 }))
 
+  // Track the current round's sequence so we can filter the completed stack
+  // to only articles from this round (Option A: hide previous-round history).
+  let currentRoundSequence: string[] = (profile?.sequence as string[] | null) ?? []
+
   // Purge excess DB rows — delete uncompleted rows beyond the 10-article cap.
   // These were created by older code that had no limit. Fire-and-forget (non-blocking).
   const excessRows = allActiveRows.slice(maxActive)
@@ -235,6 +239,7 @@ export async function GET() {
       if (freshArticles && freshArticles.length > 0) {
         const newSequence = buildSequence(archetype, freshArticles, excludeIds, 10)
         if (newSequence.length > 0) {
+          currentRoundSequence = newSequence
           await supabaseAdmin.from('user_profiles').update({ sequence: newSequence }).eq('user_id', user.id)
           await supabaseAdmin.from('user_progress').insert(
             newSequence.map((articleId, idx) => ({
@@ -273,9 +278,19 @@ export async function GET() {
     }
   }
 
-  const current = activeRows[0] || null
-  const next = activeRows[1] || null
-  const nextNext = activeRows[2] || null
+  // Option A: only show completed articles from the current round.
+  // Articles from previous rounds are excluded so the progress bar always reads
+  // "X / 10" rather than "10 / 20" after a refill.
+  const currentRoundIds = new Set<string>(currentRoundSequence)
+  const displayCompletedRows = completedRows
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((r) => currentRoundIds.has((r.articles as any)?.id ?? ''))
+    .map((r, i) => ({ ...r, position: i + 1 }))
+  const displayActiveRows = activeRows.map((r, i) => ({ ...r, position: displayCompletedRows.length + i + 1 }))
+
+  const current = displayActiveRows[0] || null
+  const next = displayActiveRows[1] || null
+  const nextNext = displayActiveRows[2] || null
 
   // Quiz trigger: articles with gate passed but not yet covered by a quiz session
   const { data: lastQuiz } = await supabaseAdmin
@@ -314,12 +329,12 @@ export async function GET() {
     archetypeDisplay: profile.archetype_display || '',
     archetypeTagline: profile.archetype_tagline || '',
     avatar: profile.avatar ?? 'sensei',
-    totalInPath: completedRows.length + activeRows.length,
-    completedCount: completedRows.length,
+    totalInPath: displayCompletedRows.length + displayActiveRows.length,
+    completedCount: displayCompletedRows.length,
     current,
     next,
     nextNext,
-    completed: [...completedRows].reverse(),
+    completed: [...displayCompletedRows].reverse(),
     quizReady,
     quizArticleIds,
     quizAfterCurrent,
