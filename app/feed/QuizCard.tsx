@@ -28,10 +28,12 @@ type QuizState =
 export default function QuizCard({
   articleIds,
   onComplete,
+  onSkip,
   onReRead,
 }: {
   articleIds: string[]
   onComplete: (results: { articleIds: string[]; correct: number; total: number; articles: QuizArticle[]; newStreak: number }) => void
+  onSkip?: () => void
   onReRead?: () => void
 }) {
   const [questions, setQuestions] = useState<Question[]>([])
@@ -97,6 +99,28 @@ export default function QuizCard({
       setSaveError(true)
       return
     }
+  }
+
+  async function skipQuiz(finalCorrect: number) {
+    // Save session (marks articles complete so quiz doesn't re-trigger),
+    // then call onSkip to go straight back to feed — no insights screen.
+    setSubmitting(true)
+    try {
+      await fetch('/api/quiz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          article_ids: articleIds,
+          total_questions: questions.length,
+          correct_answers: finalCorrect,
+        }),
+      })
+    } catch {
+      // Non-fatal — still navigate away so user isn't stuck
+    } finally {
+      setSubmitting(false)
+    }
+    onSkip?.()
   }
 
   function handleAnswer(selected: string) {
@@ -384,7 +408,7 @@ export default function QuizCard({
                   </button>
                 )}
                 <button
-                  onClick={() => finishQuiz(cc)}
+                  onClick={() => skipQuiz(cc)}
                   disabled={submitting}
                   style={{
                     ...primaryBtn,

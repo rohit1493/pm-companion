@@ -369,6 +369,9 @@ export default function FeedClient() {
   const [burstOrigin, setBurstOrigin] = useState({ x: 0, y: 0 })
   const identifiedRef = useRef(false)
   const pathCompleteTrackedRef = useRef(false)
+  // Tracks whether the user explicitly dismissed the quiz via "Re-read".
+  // Prevents handleUnlockComplete from auto-jumping back to quiz phase.
+  const quizDismissedRef = useRef(false)
 
   const loadFeed = useCallback(async () => {
     setPhase('loading')
@@ -410,23 +413,23 @@ export default function FeedClient() {
         identifiedRef.current = true
       }
 
+      // Link profile BEFORE loading feed — prevents race where feed loads
+      // before the onboarding session is linked to the user account.
       const sessionId = localStorage.getItem('pm_session_id')
-      const linkProfilePromise = sessionId
-        ? fetch('/api/link-profile', {
+      if (sessionId) {
+        try {
+          const linkRes = await fetch('/api/link-profile', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session_id: sessionId }),
           })
-            .then((linkRes) => {
-              // Only clear session_id on definitive success — keeps it for retry on 401/5xx
-              if (linkRes.ok) {
-                localStorage.removeItem('pm_session_id')
-              }
-            })
-            .catch(() => {})
-        : Promise.resolve()
+          if (linkRes.ok) localStorage.removeItem('pm_session_id')
+        } catch {
+          // Non-fatal — feed will still load, link retried on next visit
+        }
+      }
 
-      await Promise.all([linkProfilePromise, loadFeed()])
+      await loadFeed()
     })
   }, [loadFeed])
 
@@ -444,7 +447,7 @@ export default function FeedClient() {
       if (!r.ok) throw new Error('Failed to load feed')
       const data: FeedData = await r.json()
       setFeedData(data)
-      if (data.viewType === 'path' && data.quizReady) {
+      if (data.viewType === 'path' && data.quizReady && !quizDismissedRef.current) {
         if (!data.quizArticleIds?.length) {
           loadFeed()
           return
@@ -456,6 +459,13 @@ export default function FeedClient() {
     } catch {
       setPhase('feed')
     }
+  }
+
+  function handleQuizSkip() {
+    // User skipped the quiz — articles already marked complete by QuizCard.
+    // Just go back to feed; no insights screen.
+    quizDismissedRef.current = false
+    loadFeed()
   }
 
   function handleQuizComplete(result: QuizResult & { newStreak?: number }) {
@@ -532,7 +542,9 @@ export default function FeedClient() {
               <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'opacity 200ms ease', opacity: menuOpen ? 0 : 1 }} />
               <span style={{ display: 'block', width: '18px', height: '2px', background: '#8b96a5', borderRadius: '1px', transition: 'transform 200ms ease', transform: menuOpen ? 'rotate(-45deg) translate(4px, -4px)' : 'none' }} />
             </button>
-            <span className="nav-logo">PM Dojo</span>
+            <Link href="/feed" style={{ textDecoration: 'none' }}>
+              <span className="nav-logo">PM Dojo</span>
+            </Link>
           </div>
 
           {/* Centre — Tab nav, absolutely centered */}
@@ -762,7 +774,8 @@ export default function FeedClient() {
           <QuizCard
             articleIds={pathData.quizArticleIds}
             onComplete={handleQuizComplete}
-            onReRead={loadFeed}
+            onSkip={handleQuizSkip}
+            onReRead={() => { quizDismissedRef.current = true; loadFeed() }}
           />
         )}
 
@@ -848,6 +861,7 @@ export default function FeedClient() {
                       return
                     }
                     analytics.quizStarted(pathData.quizArticleIds.length)
+                    quizDismissedRef.current = false
                     setPhase('quiz')
                   }}
                   >
@@ -939,7 +953,7 @@ export default function FeedClient() {
                       Path complete!
                     </h2>
                     <p style={{ fontSize: '14px', color: '#8b96a5', fontFamily: "'Inter', sans-serif" }}>
-                      You&apos;ve read all 10 articles. Check your dashboard for your PM Dojo score.
+                      You&apos;ve read all {pathData.totalInPath} articles. Check your dashboard for your PM Dojo score.
                     </p>
                     <Link href="/dashboard" style={{
                       display: 'inline-block',
@@ -1087,6 +1101,22 @@ export default function FeedClient() {
           >
             ×
           </button>
+          <div style={{
+            textAlign: 'center',
+            padding: '72px 24px 16px',
+            maxWidth: '480px',
+            margin: '0 auto',
+          }}>
+            <p style={{
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '12px',
+              color: '#6b7685',
+              lineHeight: 1.5,
+            }}>
+              Your fighter is cosmetic — it doesn&apos;t change your article path.
+              To switch your PM archetype and content, use <strong style={{ color: '#8b96a5' }}>New Path</strong> on the dashboard.
+            </p>
+          </div>
           <AvatarPicker
             currentAvatar={feedData?.avatar as AvatarKey | undefined}
             onSelect={async (key, x, y) => {
