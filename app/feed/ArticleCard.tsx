@@ -66,7 +66,7 @@ export default function ArticleCard({
 }) {
   const article = row.articles
   const [gateState, setGateState] = useState<GateState>(
-    row.read_gate_passed ? 'returned_pass' : 'idle'
+    row.read_gate_passed ? 'returned_pass' : row.time_on_article_seconds > 0 ? 'returned_fail' : 'idle'
   )
   const [timeAccumulated, setTimeAccumulated] = useState(row.time_on_article_seconds || 0)
   const [saving, setSaving] = useState(false)
@@ -100,7 +100,12 @@ export default function ArticleCard({
     } finally {
       setSaving(false)
     }
-  }, [article.id, onGatePassed])
+  }, [article.id])
+
+  const handleUnlockComplete = useCallback(() => {
+    setShowUnlock(false)
+    onGatePassed()
+  }, [onGatePassed])
 
   // Track time when tab is hidden (user is reading).
   // Active in both 'reading' and 'returned_fail' so user never needs to click
@@ -161,7 +166,7 @@ export default function ArticleCard({
       overflow: 'hidden',
       marginBottom: '16px',
     }}>
-      {showUnlock && <UnlockAnimation onComplete={() => { setShowUnlock(false); onGatePassed() }} />}
+      {showUnlock && <UnlockAnimation onComplete={handleUnlockComplete} />}
       {/* Position header */}
       <div style={{
         padding: '14px 20px',
@@ -334,6 +339,32 @@ export default function ArticleCard({
               marginBottom: '12px',
               textAlign: 'center',
             }}>
+              {/* Progress bar */}
+              <div style={{ marginBottom: '10px' }}>
+                <div style={{
+                  height: '6px',
+                  background: 'rgba(239,68,68,0.15)',
+                  borderRadius: '99px',
+                  overflow: 'hidden',
+                }}>
+                  <div style={{
+                    height: '100%',
+                    width: `${Math.min(timeAccumulated, 30) / 30 * 100}%`,
+                    background: timeAccumulated >= 20 ? '#f87171' : '#ef4444',
+                    borderRadius: '99px',
+                    transition: 'width 600ms ease',
+                  }} />
+                </div>
+                <p style={{
+                  fontSize: '11px',
+                  color: '#6b7685',
+                  fontFamily: "'Inter', sans-serif",
+                  marginTop: '5px',
+                  textAlign: 'right',
+                }}>
+                  {Math.min(Math.round(timeAccumulated), 30)}s / 30s
+                </p>
+              </div>
               <p style={{
                 fontFamily: "'Inter', sans-serif",
                 fontSize: '14px',
