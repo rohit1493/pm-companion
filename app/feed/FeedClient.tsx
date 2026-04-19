@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase-browser'
 import ArticleCard from './ArticleCard'
 import QuizCard from './QuizCard'
 import KeyInsightCard from './KeyInsightCard'
-import UnlockAnimation from './UnlockAnimation'
 import { analytics, identifyUser } from '@/lib/analytics'
 import { useAvatarTheme } from '@/hooks/useAvatarTheme'
 import { getAvatarComponent } from '@/components/avatars'
@@ -434,7 +433,9 @@ export default function FeedClient() {
   }, [loadFeed])
 
   function handleGatePassed() {
-    setPhase('unlocking')
+    // ArticleCard already played its own unlock animation.
+    // Fetch updated feed data silently without wiping the screen.
+    handleUnlockComplete()
   }
 
   async function handleUnlockComplete() {
@@ -762,11 +763,6 @@ export default function FeedClient() {
             <Skeleton />
             <Skeleton />
           </>
-        )}
-
-        {/* UNLOCK ANIMATION */}
-        {phase === 'unlocking' && (
-          <UnlockAnimation onComplete={handleUnlockComplete} />
         )}
 
         {/* QUIZ PHASE */}
